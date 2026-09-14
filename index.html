@@ -1,0 +1,96 @@
+<!-- HOME PAGE (Estructura base, Head, Metadatos y apertura del Body) - Inicia -->
+
+
+<!-- HOME PAGE (Estructura base, Head, Metadatos y apertura del Body) - Termina -->
+
+    <!-- MENU - Inicia -->
+    <!-- 1. NAVBAR -->
+
+
+
+    <!-- MENU - Termina -->
+
+    <!-- SLIDER - Inicia -->
+    <!-- 2. CARRUSEL HERO -->
+    
+
+
+
+    <!-- SLIDER - Termina -->
+
+    <!-- BASE DE DATOS Y FICHA DE PRODUCT - Inicia -->
+    <!-- 3. MENÚ RÁPIDO DE CATEGORÍAS -->
+    <div class="container mb-5 text-center">
+        <h3 class="fw-bold mb-4">Explora nuestro catálogo</h3>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Baterías y Pantallas</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Almacenamiento (SSD/HDD)</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Memoria RAM</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Mantenimiento y Herramientas</button>
+        </div>
+    </div>
+
+    <!-- 4. CUADRÍCULA DE PRODUCTOS (DINÁMICA DESDE MONGODB) -->
+    <div class="container mb-5">
+        <h2 class="fw-bold mb-4 text-center">Componentes Destacados</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="contenedor-productos">
+            <!-- Los productos se cargarán aquí automáticamente desde MongoDB -->
+        </div>
+    </div>
+    <!-- BASE DE DATOS Y FICHA DE PRODUCT - Termina -->
+
+    <!-- RUTA DE MAPA - Inicia -->
+    <!-- 5. SECCIÓN RESERVADA PARA LA RUTA DE MAPA -->
+
+
+    <!-- RUTA DE MAPA - Termina -->
+
+<!-- HOME PAGE (Footer y cierre del documento) - Inicia -->
+    <!-- 6. BANNER DESTACADO -->
+    
+
+
+    <!-- HOME PAGE (Footer y cierre del documento) - Termina -->
+
+    <!-- SCRIPT DE CONEXIÓN A MONGODB -->
+    <script>
+        async function cargarProductos() {
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/productos');
+                const productos = await respuesta.json();
+                
+                const contenedor = document.getElementById('contenedor-productos');
+                contenedor.innerHTML = ''; 
+
+                productos.forEach(producto => {
+                    const cardHTML = `
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
+                                <div class="text-end mb-2">
+                                    <span class="badge bg-success"><i class="bi bi-shield-check"></i> 0 Riesgo</span>
+                                </div>
+                                <div class="bg-secondary bg-opacity-10 rounded-3 p-4 mb-3 d-flex align-items-center justify-content-center" style="height: 180px;">
+                                    <i class="bi bi-pc-display-horizontal display-1 text-dark"></i>
+                                </div>
+                                <div class="card-body p-0 d-flex flex-column">
+                                    <h5 class="card-title fw-bold">${producto.nombre}</h5>
+                                    <p class="card-text text-muted small">${producto.descripcion_corta}</p>
+                                    <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
+                                    <p class="fw-bold fs-5 mt-auto">$${producto.precio.toLocaleString()} MXN</p>
+                                    <button class="btn btn-dark rounded-pill w-100 mt-2">Validar Compatibilidad</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.innerHTML += cardHTML;
+                });
+
+            } catch (error) {
+                console.error("Error al conectar con el backend:", error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', cargarProductos);
+    </script>
+</body>
+</html>
