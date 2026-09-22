@@ -1,4 +1,3 @@
-<!-- HOME PAGE (Estructura base, Head, Metadatos y apertura del Body) - Inicia -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -34,9 +33,7 @@
     </style>
 </head>
 <body class="bg-light">
-<!-- HOME PAGE (Estructura base, Head, Metadatos y apertura del Body) - Termina -->
 
-    <!-- MENU - Inicia -->
     <!-- 1. NAVBAR -->
      <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-3">
         <div class="container">
@@ -97,9 +94,6 @@
         </div>
     </section>
 
-    <!-- MENU - Termina -->
-
-    <!-- SLIDER - Inicia -->
     <!-- 2. CARRUSEL HERO -->
     <div id="heroCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
         <div class="carousel-indicators">
@@ -135,9 +129,7 @@
             <span class="carousel-control-next-icon"></span>
         </button>
     </div>
-    <!-- SLIDER - Termina -->
 
-    <!-- BASE DE DATOS Y FICHA DE PRODUCT - Inicia -->
     <!-- 3. MENÚ RÁPIDO DE CATEGORÍAS -->
     <div class="container mb-5 text-center">
         <h3 class="fw-bold mb-4">Explora nuestro catálogo</h3>
@@ -156,11 +148,9 @@
             <!-- Los productos se cargarán aquí automáticamente desde MongoDB -->
         </div>
     </div>
-    <!-- BASE DE DATOS Y FICHA DE PRODUCT - Termina -->
 
-    <!-- RUTA DE MAPA - Inicia -->
     <!-- 5. SECCIÓN RESERVADA PARA LA RUTA DE MAPA -->
-    <div class="container mb-5">
+    <div class="container mb-5" id="ubicacion">
         <h2 class="fw-bold mb-4 text-center">Encuéntranos en el ITSOEH</h2>
         <div class="row justify-content-center">
             <div class="col-lg-12">
@@ -176,12 +166,86 @@
             </div>
         </div>
     </div>
-    <!-- RUTA DE MAPA - Termina -->
 
-<!-- HOME PAGE (Footer y cierre del documento) - Inicia -->
+    <!-- NUEVA SECCIÓN: FORMULARIOS DE ACCESO Y CONTACTO -->
+    <div class="container mb-5">
+        <div class="row g-4">
+            <!-- Formulario de Registro -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                    <h3 class="fw-bold mb-3"><i class="bi bi-person-plus text-primary me-2"></i>Registro</h3>
+                    <form id="formRegistro">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre completo</label>
+                            <input type="text" id="regName" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Correo electrónico</label>
+                            <input type="email" id="regEmail" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Contraseña</label>
+                            <input type="password" id="regPassword" class="form-control rounded-pill" required>
+                        </div>
+                        <button type="submit" class="btn btn-dark rounded-pill w-100">Registrarse</button>
+                    </form>
+                    <div id="msgRegistro" class="mt-3 small text-center fw-medium"></div>
+                </div>
+            </div>
+
+            <!-- Formulario de Login -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                    <h3 class="fw-bold mb-3"><i class="bi bi-box-arrow-in-right text-primary me-2"></i>Iniciar Sesión</h3>
+                    <form id="formLogin">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Correo electrónico</label>
+                            <input type="email" id="loginEmail" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Contraseña</label>
+                            <input type="password" id="loginPassword" class="form-control rounded-pill" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-pill w-100">Entrar</button>
+                    </form>
+                    <div id="msgLogin" class="mt-3 small text-center fw-medium"></div>
+                </div>
+            </div>
+
+            <!-- Formulario de Contacto -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0 rounded-4 p-4 h-100">
+                    <h3 class="fw-bold mb-3"><i class="bi bi-envelope text-primary me-2"></i>Contáctanos</h3>
+                    <form id="formContacto">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Tu Nombre</label>
+                            <input type="text" id="contNombre" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Tu Correo</label>
+                            <input type="email" id="contEmail" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Mensaje</label>
+                            <textarea id="contMensaje" class="form-control rounded-3" rows="2" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-dark rounded-pill w-100">Enviar Mensaje</button>
+                    </form>
+                    <div id="msgContacto" class="mt-3 small text-center fw-medium"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTÓN FLOTANTE DE WHATSAPP -->
+    <div class="position-fixed bottom-0 end-0 p-4" style="z-index: 1080;">
+        <button id="btnWhatsapp" class="btn btn-success rounded-circle shadow-lg p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;" title="Soporte por WhatsApp">
+            <i class="bi bi-whatsapp fs-2 text-white"></i>
+        </button>
+    </div>
+
     <!-- 6. BANNER DESTACADO -->
-    
-<div class="container mb-5">
+    <div class="container mb-5">
         <div class="bg-dark text-white rounded-4 p-5 text-center shadow">
             <span class="text-uppercase tracking-wide text-warning fw-bold d-block mb-2">Economía Circular</span>
             <h2 class="display-4 fw-bold mb-3">Plan de Canje Activo</h2>
@@ -207,59 +271,13 @@
                 </div>
                 <div class="col-md-4 mb-3">
                     <h6 class="fw-bold text-dark">Contacto</h6>
-                    <p>soporte@eshopdiy.com.mx<br>Asesoría técnica 24/7</p>
+                    <p>techstoreoficial693@gmail.com<br>Asesoría técnica 24/7</p>
                 </div>
             </div>
             <hr>
             <p class="text-center mb-0">&copy; 2026 E-Shop DIY. Todos los derechos reservados.</p>
         </div>
     </footer>
-
-    <!-- Bootstrap 5 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- HOME PAGE (Footer y cierre del documento) - Termina -->
-
-    <!-- SCRIPT DE CONEXIÓN A MONGODB -->
-    <script>
-        async function cargarProductos() {
-            try {
-                const respuesta = await fetch('http://localhost:3000/api/productos');
-                const productos = await respuesta.json();
-                
-                const contenedor = document.getElementById('contenedor-productos');
-                contenedor.innerHTML = ''; 
-
-                productos.forEach(producto => {
-                    const cardHTML = `
-                        <div class="col">
-                            <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
-                                <div class="text-end mb-2">
-                                    <span class="badge bg-success"><i class="bi bi-shield-check"></i> 0 Riesgo</span>
-                                </div>
-                                <div class="bg-secondary bg-opacity-10 rounded-3 p-4 mb-3 d-flex align-items-center justify-content-center" style="height: 180px;">
-                                    <i class="bi bi-pc-display-horizontal display-1 text-dark"></i>
-                                </div>
-                                <div class="card-body p-0 d-flex flex-column">
-                                    <h5 class="card-title fw-bold">${producto.nombre}</h5>
-                                    <p class="card-text text-muted small">${producto.descripcion_corta}</p>
-                                    <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
-                                    <p class="fw-bold fs-5 mt-auto">$${producto.precio.toLocaleString()} MXN</p>
-                                    <button class="btn btn-dark rounded-pill w-100 mt-2">Validar Compatibilidad</button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    contenedor.innerHTML += cardHTML;
-                });
-
-            } catch (error) {
-                console.error("Error al conectar con el backend:", error);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', cargarProductos);
-    </script>
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -273,9 +291,7 @@
     <!-- SCRIPT DEL MAPA INTERACTIVO -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Coordenadas fijas del ITSOEH
             const coordenadasITSOEH = [20.2055, -99.2218];
-
             const mapa = L.map('contenedorMapa').setView(coordenadasITSOEH, 13);
 
             L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
@@ -314,6 +330,131 @@
                 }).addTo(mapa);
             });
         });
+    </script>
+
+    <!-- SCRIPT DE CONEXIÓN A MONGODB (PRODUCTOS, REGISTRO, LOGIN Y CONTACTO) -->
+    <script>
+        // 1. Cargar productos desde MongoDB
+        async function cargarProductos() {
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/productos');
+                const productos = await respuesta.json();
+                
+                const contenedor = document.getElementById('contenedor-productos');
+                contenedor.innerHTML = ''; 
+
+                productos.forEach(producto => {
+                    const cardHTML = `
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
+                                <div class="text-end mb-2">
+                                    <span class="badge bg-success"><i class="bi bi-shield-check"></i> 0 Riesgo</span>
+                                </div>
+                                <div class="bg-secondary bg-opacity-10 rounded-3 p-4 mb-3 d-flex align-items-center justify-content-center" style="height: 180px;">
+                                    <i class="bi bi-pc-display-horizontal display-1 text-dark"></i>
+                                </div>
+                                <div class="card-body p-0 d-flex flex-column">
+                                    <h5 class="card-title fw-bold">${producto.nombre}</h5>
+                                    <p class="card-text text-muted small">${producto.descripcion_corta}</p>
+                                    <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
+                                    <p class="fw-bold fs-5 mt-auto">$${producto.precio.toLocaleString()} MXN</p>
+                                    <button class="btn btn-dark rounded-pill w-100 mt-2">Validar Compatibilidad</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    contenedor.innerHTML += cardHTML;
+                });
+            } catch (error) {
+                console.error("Error al conectar con el backend de productos:", error);
+            }
+        }
+
+        // 2. Manejo del Registro de Usuarios
+        document.getElementById('formRegistro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const msgDiv = document.getElementById('msgRegistro');
+
+            msgDiv.textContent = "Registrando y enviando correo de verificación...";
+            msgDiv.className = "mt-3 small text-center text-info fw-medium";
+
+            try {
+                const res = await fetch('http://localhost:3000/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                msgDiv.textContent = data.message;
+                msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
+            } catch (error) {
+                msgDiv.textContent = "Error de conexión con el servidor";
+                msgDiv.className = "mt-3 small text-center text-danger fw-medium";
+            }
+        });
+
+        // 3. Manejo del Inicio de Sesión
+        document.getElementById('formLogin').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const msgDiv = document.getElementById('msgLogin');
+
+            msgDiv.textContent = "Verificando credenciales...";
+            msgDiv.className = "mt-3 small text-center text-info fw-medium";
+
+            try {
+                const res = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                msgDiv.textContent = data.message;
+                msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
+            } catch (error) {
+                msgDiv.textContent = "Error de conexión con el servidor";
+                msgDiv.className = "mt-3 small text-center text-danger fw-medium";
+            }
+        });
+
+        // 4. Manejo del Formulario de Contacto (hacia techstoreoficial693@gmail.com)
+        document.getElementById('formContacto').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('contNombre').value;
+            const emailUsuario = document.getElementById('contEmail').value;
+            const mensaje = document.getElementById('contMensaje').value;
+            const msgDiv = document.getElementById('msgContacto');
+
+            msgDiv.textContent = "Enviando mensaje...";
+            msgDiv.className = "mt-3 small text-center text-info fw-medium";
+
+            try {
+                const res = await fetch('http://localhost:3000/api/contacto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombre, emailUsuario, mensaje })
+                });
+                const data = await res.json();
+                msgDiv.textContent = data.message;
+                msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
+            } catch (error) {
+                msgDiv.textContent = "Error al enviar el mensaje";
+                msgDiv.className = "mt-3 small text-center text-danger fw-medium";
+            }
+        });
+
+        // 5. Botón flotante de WhatsApp
+        document.getElementById('btnWhatsapp').addEventListener('click', () => {
+            const numeroTelefono = '521XXXXXXXXXX'; // Sustituye con tu número real
+            const texto = '¡Hola! Vengo de la E-Shop DIY y necesito asesoría técnica.';
+            window.open(`https://wa.me/${numeroTelefono}?text=${encodeURIComponent(texto)}`, '_blank');
+        });
+
+        document.addEventListener('DOMContentLoaded', cargarProductos);
     </script>
 </body>
 </html>
