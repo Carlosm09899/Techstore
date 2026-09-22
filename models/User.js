@@ -1,0 +1,1 @@
+// Esquema de usuario para MongoDB (isVerified, tokens, password)
