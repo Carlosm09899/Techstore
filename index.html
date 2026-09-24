@@ -378,7 +378,7 @@
     <!-- SCRIPT DE CONEXIÓN A MONGODB (PRODUCTOS, REGISTRO, LOGIN Y CONTACTO) -->
     <script>
         const verificationToken = new URLSearchParams(window.location.search).get('token');
-        if (window.location.pathname === '/verificar-correo' && verificationToken) {
+        if ((window.location.pathname === '/' || window.location.pathname === '/verificar-correo') && verificationToken) {
             document.body.innerHTML = '<main class="container py-5 text-center"><h1>Verificando correo...</h1></main>';
 
             fetch(`http://localhost:3000/api/auth/verify-email/${encodeURIComponent(verificationToken)}`)
