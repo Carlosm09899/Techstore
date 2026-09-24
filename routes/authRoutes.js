@@ -95,10 +95,41 @@ router.post('/login', async (req, res) => {
       maxAge: 4 * 60 * 60 * 1000
     });
 
-    res.json({ message: 'Inicio de sesión exitoso' });
+    res.json({
+      message: 'Inicio de sesión exitoso',
+      user: { name: user.name, email: user.email }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor al iniciar sesión', error: error.message });
   }
+});
+
+router.get('/me', async (req, res) => {
+  try {
+    if (!req.cookies.auth_token || !process.env.JWT_SECRET) {
+      return res.status(401).json({ message: 'No hay una sesión activa' });
+    }
+
+    const payload = jwt.verify(req.cookies.auth_token, process.env.JWT_SECRET);
+    const user = await User.findById(payload.id).select('name email');
+
+    if (!user) {
+      return res.status(401).json({ message: 'La sesión no es válida' });
+    }
+
+    res.json({ user });
+  } catch (error) {
+    res.status(401).json({ message: 'La sesión expiró' });
+  }
+});
+
+router.post('/logout', (req, res) => {
+  res.clearCookie('auth_token', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict'
+  });
+  res.json({ message: 'Sesión cerrada' });
 });
 
 module.exports = router;

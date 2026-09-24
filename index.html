@@ -52,10 +52,16 @@
                     <li class="nav-item"><a class="nav-link text-primary fw-bold" href="#" data-bs-toggle="modal" data-bs-target="#modalContacto">Contacto</a></li>
                 </ul>
             </div>
-            <div class="d-flex gap-3 fs-5">
+            <div class="d-flex gap-3 fs-5 align-items-center">
                 <a href="#" class="text-dark"><i class="bi bi-search"></i></a>
-                <!-- NUEVO: El icono de persona ahora abre el Modal de Autenticación -->
-                <a href="#" class="text-dark" data-bs-toggle="modal" data-bs-target="#modalAuth" title="Mi Cuenta"><i class="bi bi-person"></i></a>
+                <div class="dropdown">
+                    <button id="cuentaUsuario" type="button" class="btn btn-link text-dark text-decoration-none p-0" data-bs-toggle="modal" data-bs-target="#modalAuth" title="Mi Cuenta">
+                        <i class="bi bi-person"></i>
+                    </button>
+                    <ul id="menuCuenta" class="dropdown-menu dropdown-menu-end">
+                        <li><button id="cerrarSesion" type="button" class="dropdown-item">Cerrar sesión</button></li>
+                    </ul>
+                </div>
                 <a href="#" class="text-dark"><i class="bi bi-bag"></i></a>
             </div>
         </div>
@@ -402,6 +408,42 @@
 
         emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
 
+        const cuentaUsuario = document.getElementById('cuentaUsuario');
+
+        function mostrarUsuario(user) {
+            cuentaUsuario.innerHTML = `<i class="bi bi-person-check me-1"></i>${user.name}`;
+            cuentaUsuario.removeAttribute('data-bs-target');
+            cuentaUsuario.setAttribute('data-bs-toggle', 'dropdown');
+            cuentaUsuario.title = `Cuenta de ${user.name}`;
+        }
+
+        function mostrarCuentaInicial() {
+            cuentaUsuario.innerHTML = '<i class="bi bi-person"></i>';
+            cuentaUsuario.setAttribute('data-bs-toggle', 'modal');
+            cuentaUsuario.setAttribute('data-bs-target', '#modalAuth');
+            cuentaUsuario.title = 'Mi Cuenta';
+        }
+
+        async function cargarSesion() {
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' });
+                if (respuesta.ok) {
+                    const data = await respuesta.json();
+                    mostrarUsuario(data.user);
+                }
+            } catch (error) {
+                console.error('No se pudo comprobar la sesión:', error);
+            }
+        }
+
+        document.getElementById('cerrarSesion').addEventListener('click', async () => {
+            await fetch('http://localhost:3000/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            mostrarCuentaInicial();
+        });
+
         // 1. Cargar productos desde MongoDB
         async function cargarProductos(categoria = '') {
             try {
@@ -508,6 +550,7 @@
                 if (res.ok) {
                     document.getElementById('formLogin').reset();
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAuth')).hide();
+                    mostrarUsuario(data.user);
                 }
             } catch (error) {
                 msgDiv.textContent = "Error de conexión con el servidor";
@@ -553,7 +596,10 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', cargarProductos);
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarProductos();
+            cargarSesion();
+        });
     </script>
 </body>
 </html>
