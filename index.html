@@ -426,7 +426,7 @@
 
         async function cargarSesion() {
             try {
-                const respuesta = await fetch('http://localhost:3000/api/auth/me', { credentials: 'include' });
+                const respuesta = await fetch('/api/auth/me', { credentials: 'include' });
                 if (respuesta.ok) {
                     const data = await respuesta.json();
                     mostrarUsuario(data.user);
@@ -437,7 +437,7 @@
         }
 
         document.getElementById('cerrarSesion').addEventListener('click', async () => {
-            await fetch('http://localhost:3000/api/auth/logout', {
+            await fetch('/api/auth/logout', {
                 method: 'POST',
                 credentials: 'include'
             });
@@ -447,7 +447,7 @@
         // 1. Cargar productos desde MongoDB
         async function cargarProductos(categoria = '') {
             try {
-                const url = new URL('http://localhost:3000/api/productos');
+                const url = new URL('/api/productos', window.location.origin);
                 if (categoria) {
                     url.searchParams.set('categoria', categoria);
                 }
@@ -510,7 +510,7 @@
             msgDiv.className = "mt-3 small text-center text-info fw-medium";
 
             try {
-                const res = await fetch('http://localhost:3000/api/auth/register', {
+                const res = await fetch('/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email, password })
@@ -538,7 +538,7 @@
             msgDiv.className = "mt-3 small text-center text-info fw-medium";
 
             try {
-                const res = await fetch('http://localhost:3000/api/auth/login', {
+                const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',

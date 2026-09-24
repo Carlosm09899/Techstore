@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 dotenv.config();
 
 const app = express();
+app.use(express.static(__dirname));
 app.use(express.json());
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
@@ -53,7 +54,7 @@ app.get('/api/productos', async (req, res) => {
 });
 
 // 4. ENCENDER EL SERVIDOR EN EL PUERTO 3000
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
