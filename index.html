@@ -93,6 +93,20 @@
                     </div>
                 </div>
             </div>
+            <div class="row g-4 mt-4">
+                <div class="col-md-6">
+                    <div class="border-start border-primary border-4 ps-3 h-100">
+                        <h3 class="h5 fw-bold">Misión</h3>
+                        <p class="text-muted mb-0">Ofrecer componentes compatibles y herramientas claras para que cada cliente actualice y repare su equipo con confianza.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="border-start border-success border-4 ps-3 h-100">
+                        <h3 class="h5 fw-bold">Visión</h3>
+                        <p class="text-muted mb-0">Ser la tienda de referencia en soluciones DIY para hardware, destacando por asesoría técnica, transparencia y consumo responsable.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -136,17 +150,18 @@
     <div id="catalogo" class="container mb-5 text-center">
         <h3 class="fw-bold mb-4">Explora nuestro catálogo</h3>
         <div class="d-flex flex-wrap justify-content-center gap-3">
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Baterías y Pantallas</button>
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Almacenamiento (SSD/HDD)</button>
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Memoria RAM</button>
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2">Mantenimiento y Herramientas</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria active" data-categoria="">Todos</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Repuestos Laptops">Baterías y Pantallas</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Almacenamiento">Almacenamiento (SSD/HDD)</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Componentes PC">Memoria RAM y componentes</button>
+            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Mantenimiento PC">Mantenimiento y herramientas</button>
         </div>
     </div>
 
     <div class="container mb-5">
         <h2 class="fw-bold mb-4 text-center">Componentes Destacados</h2>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="contenedor-productos">
-            <!-- Los productos se cargarán aquí automáticamente desde MongoDB -->
+            <p class="text-center text-muted col-12">Cargando catálogo...</p>
         </div>
     </div>
 
@@ -378,13 +393,23 @@
     <!-- SCRIPT DE CONEXIÓN A MONGODB (PRODUCTOS, REGISTRO, LOGIN Y CONTACTO) -->
     <script>
         // 1. Cargar productos desde MongoDB
-        async function cargarProductos() {
+        async function cargarProductos(categoria = '') {
             try {
-                const respuesta = await fetch('http://localhost:3000/api/productos');
+                const url = new URL('http://localhost:3000/api/productos');
+                if (categoria) {
+                    url.searchParams.set('categoria', categoria);
+                }
+
+                const respuesta = await fetch(url);
                 const productos = await respuesta.json();
                 
                 const contenedor = document.getElementById('contenedor-productos');
                 contenedor.innerHTML = ''; 
+
+                if (productos.length === 0) {
+                    contenedor.innerHTML = '<p class="text-center text-muted col-12">No hay productos en esta categoría.</p>';
+                    return;
+                }
 
                 productos.forEach(producto => {
                     const cardHTML = `
@@ -413,6 +438,14 @@
             }
         }
 
+        document.querySelectorAll('.filtro-categoria').forEach((boton) => {
+            boton.addEventListener('click', () => {
+                document.querySelectorAll('.filtro-categoria').forEach((item) => item.classList.remove('active'));
+                boton.classList.add('active');
+                cargarProductos(boton.dataset.categoria);
+            });
+        });
+
         // 2. Manejo del Registro de Usuarios
         document.getElementById('formRegistro').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -433,6 +466,9 @@
                 const data = await res.json();
                 msgDiv.textContent = data.message;
                 msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
+                if (res.ok) {
+                    document.getElementById('formContacto').reset();
+                }
                 if (res.ok) {
                     document.getElementById('formRegistro').reset();
                 }
@@ -456,6 +492,7 @@
                 const res = await fetch('http://localhost:3000/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ email, password })
                 });
                 const data = await res.json();

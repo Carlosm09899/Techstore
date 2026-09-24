@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 
@@ -38,10 +38,14 @@ const productoSchema = new mongoose.Schema({
 const Producto = mongoose.model('Producto', productoSchema, 'productos');
 
 // 3. CREAR LA RUTA (ENDPOINT) PARA OBTENER LOS PRODUCTOS
-app.api = app.get('/api/productos', async (req, res) => {
+app.get('/api/productos', async (req, res) => {
   try {
-    // Busca todos los productos que estén activos en la base de datos
-    const productos = await Producto.find({ activo: true });
+    const filtro = { activo: true };
+    if (req.query.categoria) {
+      filtro.categoria = req.query.categoria;
+    }
+
+    const productos = await Producto.find(filtro);
     res.json(productos); // Los devuelve en formato JSON
   } catch (error) {
     res.status(500).json({ error: "Error al obtener los productos" });
