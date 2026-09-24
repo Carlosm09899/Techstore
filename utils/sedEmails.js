@@ -15,6 +15,8 @@ const sendVerificationEmail = async ({ email, name, token }) => {
   });
 
   if (!response.ok) {
+    const errorDetails = await response.text();
+    console.error('Brevo rechazó el correo:', response.status, errorDetails);
     throw new Error(`Brevo rechazó el correo (${response.status})`);
   }
 };
