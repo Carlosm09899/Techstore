@@ -2,16 +2,20 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
+const authRoutes = require('./routes/authRoutes');
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use(cookieParser());
+app.use('/api/auth', authRoutes);
 
 // 1. CONEXIÓN A MONGODB ATLAS
 // (Reemplaza con tu usuario, contraseña y la URL de tu cluster)
-const MONGO_URI = "mongodb+srv://230110073_db_user:xs7o0j94Ba5caU9s@clustertics.fmsrmr3.mongodb.net/techstore?retryWrites=true&w=majority&appName=ClusterTics";
+const MONGO_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGO_URI)
   .then(() => console.log("¡Conectado exitosamente a MongoDB Atlas!"))

@@ -1,9 +1,9 @@
-import express from 'express';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
-import User from '../models/User.js';
-import { sendVerificationEmail } from '../utils/sendEmail.js';
+const express = require('express');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const User = require('../models/user');
+const { sendVerificationEmail } = require('../utils/sedEmails');
 
 const router = express.Router();
 
@@ -11,6 +11,10 @@ const router = express.Router();
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: 'Nombre, correo y contraseña son obligatorios' });
+    }
     
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -80,6 +84,10 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Credenciales inválidas' });
     }
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: 'La autenticación no está configurada' });
+    }
+
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '4h' });
 
     res.cookie('auth_token', token, {
@@ -95,4 +103,4 @@ router.post('/login', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;
