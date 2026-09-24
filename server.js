@@ -52,49 +52,7 @@ app.get('/api/productos', async (req, res) => {
   }
 });
 
-// 4. ENVIAR MENSAJES DEL FORMULARIO DE CONTACTO
-app.post('/api/contacto', async (req, res) => {
-  const { nombre, emailUsuario, mensaje } = req.body;
-
-  if (!nombre || !emailUsuario || !mensaje) {
-    return res.status(400).json({ message: 'Todos los campos son obligatorios' });
-  }
-
-  if (!process.env.BREVO_API_KEY || !process.env.EMAIL_FROM) {
-    console.error('Faltan BREVO_API_KEY o EMAIL_FROM en el archivo .env');
-    return res.status(500).json({ message: 'El servicio de correo no está configurado' });
-  }
-
-  try {
-    const respuesta = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': process.env.BREVO_API_KEY,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        sender: { name: 'TechStore', email: process.env.EMAIL_FROM },
-        to: [{ email: process.env.EMAIL_FROM, name: 'TechStore' }],
-        replyTo: { email: emailUsuario, name: nombre },
-        subject: `Nuevo mensaje de contacto de ${nombre}`,
-        htmlContent: `<p><strong>Nombre:</strong> ${nombre}</p><p><strong>Correo:</strong> ${emailUsuario}</p><p><strong>Mensaje:</strong></p><p>${mensaje}</p>`
-      })
-    });
-
-    if (!respuesta.ok) {
-      const detalle = await respuesta.text();
-      console.error('Brevo rechazó el correo:', respuesta.status, detalle);
-      return res.status(502).json({ message: 'El proveedor de correo rechazó el mensaje' });
-    }
-
-    res.json({ message: 'Mensaje enviado correctamente' });
-  } catch (error) {
-    console.error('Error al enviar el correo de contacto:', error.message);
-    res.status(500).json({ message: 'No se pudo enviar el mensaje' });
-  }
-});
-
-// 5. ENCENDER EL SERVIDOR EN EL PUERTO 3000
+// 4. ENCENDER EL SERVIDOR EN EL PUERTO 3000
 const PORT = 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);

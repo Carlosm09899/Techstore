@@ -339,6 +339,8 @@
 
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- EmailJS para el formulario de contacto -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -392,6 +394,14 @@
 
     <!-- SCRIPT DE CONEXIÓN A MONGODB (PRODUCTOS, REGISTRO, LOGIN Y CONTACTO) -->
     <script>
+        const EMAILJS_CONFIG = {
+            publicKey: 'iBPIQKMXDfhhBIO5o',
+            serviceId: 'service_d2aacv3',
+            templateId: 'template_k80j5ul'
+        };
+
+        emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
+
         // 1. Cargar productos desde MongoDB
         async function cargarProductos(categoria = '') {
             try {
@@ -467,9 +477,6 @@
                 msgDiv.textContent = data.message;
                 msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
                 if (res.ok) {
-                    document.getElementById('formContacto').reset();
-                }
-                if (res.ok) {
                     document.getElementById('formRegistro').reset();
                 }
             } catch (error) {
@@ -520,14 +527,14 @@
             msgDiv.className = "mt-3 small text-center text-info fw-medium";
 
             try {
-                const res = await fetch('http://localhost:3000/api/contacto', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, emailUsuario, mensaje })
+                await emailjs.send(EMAILJS_CONFIG.serviceId, EMAILJS_CONFIG.templateId, {
+                    from_name: nombre,
+                    reply_to: emailUsuario,
+                    message: mensaje
                 });
-                const data = await res.json();
-                msgDiv.textContent = data.message;
-                msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
+                msgDiv.textContent = "Mensaje enviado correctamente";
+                msgDiv.className = "mt-3 small text-center text-success fw-medium";
+                document.getElementById('formContacto').reset();
             } catch (error) {
                 msgDiv.textContent = "Error al enviar el mensaje";
                 msgDiv.className = "mt-3 small text-center text-danger fw-medium";

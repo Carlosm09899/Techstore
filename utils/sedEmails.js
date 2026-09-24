@@ -1,4 +1,5 @@
-const sendWelcomeEmail = async ({ email, name }) => {
+const sendVerificationEmail = async ({ email, name, token }) => {
+  const verificationUrl = `${process.env.API_URL || 'http://localhost:3000'}/api/auth/verify-email/${token}`;
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
@@ -8,8 +9,8 @@ const sendWelcomeEmail = async ({ email, name }) => {
     body: JSON.stringify({
       sender: { name: 'TechStore', email: process.env.EMAIL_FROM },
       to: [{ email, name }],
-      subject: '¡Bienvenido a TechStore!',
-      htmlContent: `<p>Hola ${name},</p><p>Tu cuenta de TechStore fue creada correctamente. Ya puedes iniciar sesión y disfrutar de nuestro catálogo.</p><p>¡Gracias por registrarte!</p>`
+      subject: 'Verifica tu cuenta de TechStore',
+      htmlContent: `<p>Hola ${name},</p><p>Gracias por crear tu cuenta. Confirma tu correo haciendo clic en el siguiente enlace:</p><p><a href="${verificationUrl}">Verificar mi correo</a></p>`
     })
   });
 
@@ -18,4 +19,4 @@ const sendWelcomeEmail = async ({ email, name }) => {
   }
 };
 
-module.exports = { sendWelcomeEmail };
+module.exports = { sendVerificationEmail };
