@@ -51,7 +51,7 @@ router.get('/verify-email/:token', async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ message: 'Token inválido o expirado' });
+      return res.status(400).send('<h1>Enlace inválido o expirado</h1><p>Solicita un nuevo correo de verificación.</p>');
     }
 
     user.isVerified = true;
@@ -59,9 +59,10 @@ router.get('/verify-email/:token', async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-    res.json({ message: '¡Cuenta activada con éxito!' });
+    res.send('<h1>¡Correo verificado correctamente!</h1><p>Ya puedes volver a la tienda e iniciar sesión.</p>');
   } catch (error) {
-    res.status(500).json({ message: 'Error al verificar el correo', error: error.message });
+    console.error('Error al verificar el correo:', error.message);
+    res.status(500).send('<h1>Error al verificar el correo</h1><p>Inténtalo de nuevo más tarde.</p>');
   }
 });
 
