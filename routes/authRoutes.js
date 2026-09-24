@@ -1,9 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { sendVerificationEmail } = require('../utils/sedEmails');
+const { sendWelcomeEmail } = require('../utils/sedEmails');
 
 const router = express.Router();
 
@@ -24,49 +23,25 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const token = crypto.randomBytes(32).toString('hex');
-
     await User.create({
       name,
       email,
-      password: hashedPassword,
-      isVerified: false,
-      verificationToken: token,
-      verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 horas
+      password: hashedPassword
     });
 
-    await sendVerificationEmail({ email, name, token, clientUrl: process.env.CLIENT_URL });
-    res.json({ message: 'Registro exitoso. Revisa tu correo para activar tu cuenta.' });
+    try {
+      await sendWelcomeEmail({ email, name });
+    } catch (emailError) {
+      console.error('La cuenta se creó, pero no se pudo enviar el correo de bienvenida:', emailError.message);
+    }
+
+    res.json({ message: '¡Cuenta creada con éxito! Gracias por registrarte en TechStore. Ya puedes iniciar sesión.' });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor al registrar', error: error.message });
   }
 });
 
-// ACTIVACIÓN (Al dar clic en el link del correo)
-router.get('/verify-email/:token', async (req, res) => {
-  try {
-    const user = await User.findOne({
-      verificationToken: req.params.token,
-      verificationTokenExpires: { $gt: Date.now() }
-    });
-
-    if (!user) {
-      return res.status(400).send('<h1>Enlace inválido o expirado</h1><p>Solicita un nuevo correo de verificación.</p>');
-    }
-
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
-    await user.save();
-
-    res.send('<h1>¡Correo verificado correctamente!</h1><p>Ya puedes volver a la tienda e iniciar sesión.</p>');
-  } catch (error) {
-    console.error('Error al verificar el correo:', error.message);
-    res.status(500).send('<h1>Error al verificar el correo</h1><p>Inténtalo de nuevo más tarde.</p>');
-  }
-});
-
-// LOGIN (Bloqueo si no ha verificado su correo)
+// LOGIN
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -74,10 +49,6 @@ router.post('/login', async (req, res) => {
 
     if (!user) {
       return res.status(400).json({ message: 'Credenciales inválidas' });
-    }
-
-    if (!user.isVerified) {
-      return res.status(403).json({ message: 'Debes verificar tu correo primero' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
