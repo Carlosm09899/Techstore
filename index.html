@@ -433,6 +433,9 @@
                 const data = await res.json();
                 msgDiv.textContent = data.message;
                 msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
+                if (res.ok) {
+                    document.getElementById('formRegistro').reset();
+                }
             } catch (error) {
                 msgDiv.textContent = "Error de conexión con el servidor";
                 msgDiv.className = "mt-3 small text-center text-danger fw-medium";
@@ -458,6 +461,10 @@
                 const data = await res.json();
                 msgDiv.textContent = data.message;
                 msgDiv.className = res.ok ? "mt-3 small text-center text-success fw-medium" : "mt-3 small text-center text-danger fw-medium";
+                if (res.ok) {
+                    document.getElementById('formLogin').reset();
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAuth')).hide();
+                }
             } catch (error) {
                 msgDiv.textContent = "Error de conexión con el servidor";
                 msgDiv.className = "mt-3 small text-center text-danger fw-medium";
