@@ -22,6 +22,17 @@ const equipoSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }, { _id: true });
 
+const direccionSchema = new mongoose.Schema({
+  alias: { type: String, required: true, trim: true, maxlength: 50 },
+  nombre: { type: String, required: true, trim: true, maxlength: 120 },
+  telefono: { type: String, required: true, trim: true, maxlength: 30 },
+  direccion: { type: String, required: true, trim: true, maxlength: 200 },
+  ciudad: { type: String, required: true, trim: true, maxlength: 80 },
+  estado: { type: String, required: true, trim: true, maxlength: 80 },
+  codigoPostal: { type: String, required: true, trim: true, maxlength: 10 },
+  createdAt: { type: Date, default: Date.now }
+}, { _id: true });
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -29,7 +40,8 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   verificationToken: { type: String },
   verificationTokenExpires: { type: Date },
-  equipos: { type: [equipoSchema], default: [] }
+  equipos: { type: [equipoSchema], default: [] },
+  direcciones: { type: [direccionSchema], default: [] }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

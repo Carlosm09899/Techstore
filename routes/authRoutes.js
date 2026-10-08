@@ -267,6 +267,92 @@ router.delete('/equipos/:equipoId', async (req, res) => {
   }
 });
 
+function validarDireccion(datos) {
+  const campos = ['alias', 'nombre', 'telefono', 'direccion', 'ciudad', 'estado', 'codigoPostal'];
+  return campos.some((campo) => !String(datos[campo] || '').trim())
+    ? 'Completa todos los campos de la dirección'
+    : null;
+}
+
+function obtenerDatosDireccion(body) {
+  return ['alias', 'nombre', 'telefono', 'direccion', 'ciudad', 'estado', 'codigoPostal']
+    .reduce((direccion, campo) => {
+      direccion[campo] = String(body[campo]).trim();
+      return direccion;
+    }, {});
+}
+
+router.get('/direcciones', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+    const user = await User.findById(userId).select('direcciones');
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    res.json({ direcciones: user.direcciones || [] });
+  } catch (error) {
+    console.error('Error al obtener las direcciones:', error.message);
+    res.status(500).json({ message: 'No se pudieron obtener las direcciones' });
+  }
+});
+
+router.post('/direcciones', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+    const validationError = validarDireccion(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    user.direcciones.push(obtenerDatosDireccion(req.body));
+    await user.save();
+    res.status(201).json({
+      message: 'Dirección guardada correctamente',
+      direccion: user.direcciones[user.direcciones.length - 1]
+    });
+  } catch (error) {
+    console.error('Error al guardar la dirección:', error.message);
+    res.status(500).json({ message: 'No se pudo guardar la dirección' });
+  }
+});
+
+router.put('/direcciones/:direccionId', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+    const validationError = validarDireccion(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
+
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    const direccion = user.direcciones.id(req.params.direccionId);
+    if (!direccion) return res.status(404).json({ message: 'La dirección no existe' });
+    Object.assign(direccion, obtenerDatosDireccion(req.body));
+    await user.save();
+    res.json({ message: 'Dirección actualizada correctamente', direccion });
+  } catch (error) {
+    console.error('Error al actualizar la dirección:', error.message);
+    res.status(500).json({ message: 'No se pudo actualizar la dirección' });
+  }
+});
+
+router.delete('/direcciones/:direccionId', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    const direccion = user.direcciones.id(req.params.direccionId);
+    if (!direccion) return res.status(404).json({ message: 'La dirección no existe' });
+    direccion.deleteOne();
+    await user.save();
+    res.json({ message: 'Dirección eliminada correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar la dirección:', error.message);
+    res.status(500).json({ message: 'No se pudo eliminar la dirección' });
+  }
+});
+
 router.post('/logout', (req, res) => {
   res.clearCookie('auth_token', {
     httpOnly: true,

@@ -77,6 +77,7 @@
                     </button>
                     <ul id="menuCuenta" class="dropdown-menu dropdown-menu-end">
                         <li><button id="misCompras" type="button" class="dropdown-item"><i class="bi bi-receipt me-2"></i>Mis compras</button></li>
+                        <li><button id="misDirecciones" type="button" class="dropdown-item"><i class="bi bi-geo-alt me-2"></i>Mis direcciones</button></li>
                         <li><button id="misEquipos" type="button" class="dropdown-item"><i class="bi bi-pc-display me-2"></i>Mis equipos</button></li>
                         <li><button id="agregarEquipo" type="button" class="dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agregar PC o Laptop</button></li>
                         <li><hr class="dropdown-divider"></li>
@@ -469,6 +470,12 @@
                     <div class="modal-body p-4">
                         <div id="resumenCheckout" class="bg-light rounded-4 p-3 mb-4"></div>
                         <h6 class="fw-bold mb-3">Datos de envío</h6>
+                        <div class="mb-3">
+                            <label for="direccionGuardada" class="form-label small fw-bold">Usar una dirección guardada</label>
+                            <select id="direccionGuardada" class="form-select rounded-pill">
+                                <option value="">Capturar una nueva dirección</option>
+                            </select>
+                        </div>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="envioNombre" class="form-label small fw-bold">Nombre completo *</label>
@@ -520,6 +527,54 @@
                         <p class="text-muted text-center mb-0">Cargando compras...</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalDirecciones" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-dark text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt me-2"></i>Mis direcciones</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="listaDirecciones" class="row g-3">
+                        <p class="text-muted text-center mb-0">Cargando direcciones...</p>
+                    </div>
+                    <button id="nuevaDireccion" type="button" class="btn btn-primary rounded-pill w-100 mt-3">
+                        <i class="bi bi-plus-circle me-2"></i>Agregar dirección
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNuevaDireccion" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 id="tituloDireccion" class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Agregar dirección</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="formDireccion">
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label small fw-bold">Alias *</label><input id="direccionAlias" class="form-control rounded-pill" placeholder="Casa, trabajo..." maxlength="50" required></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold">Nombre completo *</label><input id="direccionNombre" class="form-control rounded-pill" maxlength="120" required></div>
+                            <div class="col-md-6"><label class="form-label small fw-bold">Teléfono *</label><input id="direccionTelefono" type="tel" class="form-control rounded-pill" maxlength="30" required></div>
+                            <div class="col-12"><label class="form-label small fw-bold">Dirección *</label><input id="direccionCalle" class="form-control rounded-pill" placeholder="Calle, número y colonia" maxlength="200" required></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold">Ciudad *</label><input id="direccionCiudad" class="form-control rounded-pill" maxlength="80" required></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold">Estado *</label><input id="direccionEstado" class="form-control rounded-pill" maxlength="80" required></div>
+                            <div class="col-md-4"><label class="form-label small fw-bold">Código postal *</label><input id="direccionCodigoPostal" class="form-control rounded-pill" maxlength="10" pattern="[0-9]{5}" required></div>
+                        </div>
+                        <div id="msgDireccion" class="small text-center fw-medium mt-3"></div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-save me-2"></i>Guardar dirección</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -746,6 +801,149 @@
             }
         }
 
+        let direccionesUsuario = [];
+
+        function mostrarDirecciones(direcciones) {
+            const lista = document.getElementById('listaDirecciones');
+            lista.innerHTML = '';
+            if (!direcciones.length) {
+                lista.innerHTML = '<p class="text-muted text-center mb-0">Aún no tienes direcciones guardadas.</p>';
+                return;
+            }
+            direcciones.forEach((direccion) => {
+                lista.insertAdjacentHTML('beforeend', `
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 bg-light rounded-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between gap-2">
+                                    <div>
+                                        <span class="badge bg-primary rounded-pill">${escaparHTML(direccion.alias)}</span>
+                                        <h6 class="fw-bold mt-2 mb-1">${escaparHTML(direccion.nombre)}</h6>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-circle editar-direccion" data-id="${escaparHTML(direccion._id)}" aria-label="Editar dirección"><i class="bi bi-pencil"></i></button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle eliminar-direccion" data-id="${escaparHTML(direccion._id)}" aria-label="Eliminar dirección"><i class="bi bi-trash"></i></button>
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-2">${escaparHTML(direccion.direccion)}<br>${escaparHTML(direccion.ciudad)}, ${escaparHTML(direccion.estado)}<br>CP ${escaparHTML(direccion.codigoPostal)} · ${escaparHTML(direccion.telefono)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+            lista.querySelectorAll('.editar-direccion').forEach((button) => {
+                button.addEventListener('click', () => editarDireccion(button.dataset.id));
+            });
+            lista.querySelectorAll('.eliminar-direccion').forEach((button) => {
+                button.addEventListener('click', () => eliminarDireccion(button.dataset.id));
+            });
+        }
+
+        async function cargarDirecciones() {
+            const lista = document.getElementById('listaDirecciones');
+            lista.innerHTML = '<p class="text-muted text-center mb-0">Cargando direcciones...</p>';
+            try {
+                const respuesta = await fetch('/api/auth/direcciones', { credentials: 'include' });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudieron cargar las direcciones');
+                direccionesUsuario = data.direcciones || [];
+                mostrarDirecciones(direccionesUsuario);
+            } catch (error) {
+                lista.innerHTML = `<p class="text-danger text-center mb-0">${escaparHTML(error.message)}</p>`;
+            }
+        }
+
+        function abrirFormularioDireccion(direccion) {
+            const form = document.getElementById('formDireccion');
+            form.reset();
+            form.removeAttribute('data-id');
+            document.getElementById('tituloDireccion').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Agregar dirección';
+            if (direccion) {
+                const valores = {
+                    direccionAlias: direccion.alias,
+                    direccionNombre: direccion.nombre,
+                    direccionTelefono: direccion.telefono,
+                    direccionCalle: direccion.direccion,
+                    direccionCiudad: direccion.ciudad,
+                    direccionEstado: direccion.estado,
+                    direccionCodigoPostal: direccion.codigoPostal
+                };
+                Object.entries(valores).forEach(([id, value]) => { document.getElementById(id).value = value; });
+                form.dataset.id = direccion._id;
+                document.getElementById('tituloDireccion').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar dirección';
+            }
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevaDireccion')).show();
+        }
+
+        function editarDireccion(id) {
+            const direccion = direccionesUsuario.find((item) => String(item._id) === String(id));
+            if (direccion) {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDirecciones')).hide();
+                abrirFormularioDireccion(direccion);
+            }
+        }
+
+        async function eliminarDireccion(id) {
+            if (!window.confirm('¿Quieres eliminar esta dirección?')) return;
+            try {
+                const respuesta = await fetch(`/api/auth/direcciones/${encodeURIComponent(id)}`, { method: 'DELETE', credentials: 'include' });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudo eliminar la dirección');
+                cargarDirecciones();
+            } catch (error) {
+                document.getElementById('listaDirecciones').insertAdjacentHTML('beforeend', `<p class="text-danger small text-center">${escaparHTML(error.message)}</p>`);
+            }
+        }
+
+        document.getElementById('misDirecciones').addEventListener('click', () => {
+            if (!sesionUsuario) {
+                solicitarInicioSesion('Primero inicia sesión para administrar tus direcciones.');
+                return;
+            }
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDirecciones')).show();
+            cargarDirecciones();
+        });
+        document.getElementById('nuevaDireccion').addEventListener('click', () => abrirFormularioDireccion());
+
+        document.getElementById('formDireccion').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const value = (id) => document.getElementById(id).value.trim();
+            const datos = {
+                alias: value('direccionAlias'),
+                nombre: value('direccionNombre'),
+                telefono: value('direccionTelefono'),
+                direccion: value('direccionCalle'),
+                ciudad: value('direccionCiudad'),
+                estado: value('direccionEstado'),
+                codigoPostal: value('direccionCodigoPostal')
+            };
+            const id = form.dataset.id;
+            const mensaje = document.getElementById('msgDireccion');
+            try {
+                const respuesta = await fetch(id ? `/api/auth/direcciones/${encodeURIComponent(id)}` : '/api/auth/direcciones', {
+                    method: id ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(datos)
+                });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudo guardar la dirección');
+                mensaje.textContent = data.message;
+                mensaje.className = 'small text-center text-success fw-medium mt-3';
+                form.reset();
+                form.removeAttribute('data-id');
+                cargarDirecciones();
+                setTimeout(() => {
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevaDireccion')).hide();
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalDirecciones')).show();
+                }, 500);
+            } catch (error) {
+                mensaje.textContent = error.message;
+                mensaje.className = 'small text-center text-danger fw-medium mt-3';
+            }
+        });
+
         function obtenerClaveCarrito() {
             return sesionUsuario?.email ? `carrito:${sesionUsuario.email}` : null;
         }
@@ -845,6 +1043,24 @@
             document.getElementById('checkoutTotal').textContent = `Total: $${total.toLocaleString()} MXN`;
             document.getElementById('msgCheckout').textContent = '';
             document.getElementById('msgCheckout').className = 'small fw-medium mt-3';
+            const selector = document.getElementById('direccionGuardada');
+            selector.innerHTML = '<option value="">Capturar una nueva dirección</option>';
+            direccionesUsuario.forEach((direccion) => {
+                selector.insertAdjacentHTML('beforeend', `<option value="${escaparHTML(direccion._id)}">${escaparHTML(direccion.alias)} - ${escaparHTML(direccion.ciudad)}, ${escaparHTML(direccion.estado)}</option>`);
+            });
+        }
+
+        function llenarDatosDireccion(direccion) {
+            if (!direccion) return;
+            const datos = {
+                envioNombre: direccion.nombre,
+                envioTelefono: direccion.telefono,
+                envioDireccion: direccion.direccion,
+                envioCiudad: direccion.ciudad,
+                envioEstado: direccion.estado,
+                envioCodigoPostal: direccion.codigoPostal
+            };
+            Object.entries(datos).forEach(([id, value]) => { document.getElementById(id).value = value; });
         }
 
         async function validarCarritoFinal() {
@@ -1380,9 +1596,16 @@
         document.getElementById('btnCheckout').addEventListener('click', async () => {
             const carritoValido = await validarCarritoFinal();
             if (!carritoValido) return;
+            await cargarDirecciones();
             prepararCheckout();
             bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCarrito')).hide();
             bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCheckout')).show();
+        });
+
+        document.getElementById('direccionGuardada').addEventListener('change', (event) => {
+            const direccion = direccionesUsuario.find((item) => String(item._id) === event.target.value);
+            if (direccion) llenarDatosDireccion(direccion);
+            else document.getElementById('formCheckout').reset();
         });
 
         document.getElementById('formCheckout').addEventListener('submit', async (event) => {
