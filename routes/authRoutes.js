@@ -7,6 +7,21 @@ const { sendVerificationEmail } = require('../utils/sedEmails');
 
 const router = express.Router();
 
+function obtenerUsuarioAutenticado(req, res) {
+  if (!req.cookies.auth_token || !process.env.JWT_SECRET) {
+    res.status(401).json({ message: 'No hay una sesión activa' });
+    return null;
+  }
+
+  try {
+    const payload = jwt.verify(req.cookies.auth_token, process.env.JWT_SECRET);
+    return payload.id;
+  } catch (error) {
+    res.status(401).json({ message: 'La sesión expiró' });
+    return null;
+  }
+}
+
 // REGISTRO
 router.post('/register', async (req, res) => {
   try {
@@ -120,6 +135,135 @@ router.get('/me', async (req, res) => {
     res.json({ user });
   } catch (error) {
     res.status(401).json({ message: 'La sesión expiró' });
+  }
+});
+
+router.get('/equipos', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+
+    const user = await User.findById(userId).select('equipos');
+    if (!user) {
+      return res.status(401).json({ message: 'La sesión no es válida' });
+    }
+
+    res.json({ equipos: user.equipos || [] });
+  } catch (error) {
+    console.error('Error al obtener los equipos:', error.message);
+    res.status(500).json({ message: 'No se pudieron obtener los equipos' });
+  }
+});
+
+function validarDatosEquipo(datos) {
+  const {
+    nombre, tipo, marca, modelo, ramTipo, almacenamientoTipo,
+    procesador, socket, tarjetaGrafica, fuentePotencia
+  } = datos;
+
+  if (!nombre || !tipo || !marca || !modelo || !ramTipo || !almacenamientoTipo) {
+    return 'Completa los campos obligatorios del equipo';
+  }
+
+  if (!['PC', 'Laptop'].includes(tipo)) {
+    return 'El tipo de equipo no es válido';
+  }
+
+  if (tipo === 'Laptop' && (procesador || socket || tarjetaGrafica || fuentePotencia)) {
+    return 'Una laptop no debe incluir componentes exclusivos de PC';
+  }
+
+  return null;
+}
+
+function obtenerDatosEquipo(body) {
+  const {
+    nombre, tipo, marca, modelo, sistema, ramTipo, ramCapacidad, ramRanuras,
+    almacenamientoTipo, almacenamientoCapacidad, procesador, socket,
+    tarjetaGrafica, fuentePotencia
+  } = body;
+
+  return {
+    nombre, tipo, marca, modelo, sistema, ramTipo, ramCapacidad, ramRanuras,
+    almacenamientoTipo, almacenamientoCapacidad, procesador, socket,
+    tarjetaGrafica, fuentePotencia
+  };
+}
+
+router.post('/equipos', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+
+    const validationError = validarDatosEquipo(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ message: 'La sesión no es válida' });
+    }
+
+    user.equipos.push(obtenerDatosEquipo(req.body));
+    await user.save();
+
+    res.status(201).json({
+      message: 'Equipo guardado correctamente',
+      equipo: user.equipos[user.equipos.length - 1]
+    });
+  } catch (error) {
+    console.error('Error al guardar el equipo:', error.message);
+    res.status(500).json({ message: 'No se pudo guardar el equipo' });
+  }
+});
+
+router.put('/equipos/:equipoId', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+
+    const validationError = validarDatosEquipo(req.body);
+    if (validationError) return res.status(400).json({ message: validationError });
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ message: 'La sesión no es válida' });
+    }
+
+    const equipo = user.equipos.id(req.params.equipoId);
+    if (!equipo) {
+      return res.status(404).json({ message: 'El equipo no existe' });
+    }
+
+    Object.assign(equipo, obtenerDatosEquipo(req.body));
+    await user.save();
+    res.json({ message: 'Equipo actualizado correctamente', equipo });
+  } catch (error) {
+    console.error('Error al actualizar el equipo:', error.message);
+    res.status(500).json({ message: 'No se pudo actualizar el equipo' });
+  }
+});
+
+router.delete('/equipos/:equipoId', async (req, res) => {
+  try {
+    const userId = obtenerUsuarioAutenticado(req, res);
+    if (!userId) return;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).json({ message: 'La sesión no es válida' });
+    }
+
+    const equipo = user.equipos.id(req.params.equipoId);
+    if (!equipo) {
+      return res.status(404).json({ message: 'El equipo no existe' });
+    }
+
+    equipo.deleteOne();
+    await user.save();
+    res.json({ message: 'Equipo eliminado correctamente' });
+  } catch (error) {
+    console.error('Error al eliminar el equipo:', error.message);
+    res.status(500).json({ message: 'No se pudo eliminar el equipo' });
   }
 });
 

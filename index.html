@@ -60,10 +60,17 @@
                         <i class="bi bi-person"></i>
                     </button>
                     <ul id="menuCuenta" class="dropdown-menu dropdown-menu-end">
+                        <li><button id="misCompras" type="button" class="dropdown-item"><i class="bi bi-receipt me-2"></i>Mis compras</button></li>
+                        <li><button id="misEquipos" type="button" class="dropdown-item"><i class="bi bi-pc-display me-2"></i>Mis equipos</button></li>
+                        <li><button id="agregarEquipo" type="button" class="dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agregar PC o Laptop</button></li>
+                        <li><hr class="dropdown-divider"></li>
                         <li><button id="cerrarSesion" type="button" class="dropdown-item">Cerrar sesión</button></li>
                     </ul>
                 </div>
-                <a href="#" class="text-dark"><i class="bi bi-bag"></i></a>
+                <button id="botonCarrito" type="button" class="btn btn-link text-dark text-decoration-none p-0 position-relative" data-bs-toggle="modal" data-bs-target="#modalCarrito" title="Carrito">
+                    <i class="bi bi-bag"></i>
+                    <span id="carritoCantidad" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                </button>
             </div>
         </div>
     </nav>
@@ -263,6 +270,242 @@
         </div>
     </div>
 
+    <!-- MODAL DE EQUIPOS DEL USUARIO -->
+    <div class="modal fade" id="modalEquipos" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-dark text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-pc-display me-2"></i>Mis equipos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="listaEquipos" class="row g-3">
+                        <p class="text-muted text-center mb-0">Cargando equipos...</p>
+                    </div>
+                    <div id="sinEquipos" class="text-center text-muted py-3 d-none">
+                        <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
+                        Aún no tienes equipos registrados.
+                    </div>
+                    <button id="nuevoEquipoDesdeLista" type="button" class="btn btn-primary rounded-pill w-100 mt-3">
+                        <i class="bi bi-plus-circle me-2"></i>Agregar PC o Laptop
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalNuevoEquipo" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Agregar equipo</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="formEquipo">
+                    <div class="modal-body p-4">
+                        <p class="text-muted small">Registra las especificaciones principales para validar qué productos son compatibles con tu equipo en la siguiente etapa.</p>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Nombre del equipo *</label>
+                                <input id="equipoNombre" class="form-control rounded-pill" placeholder="Mi PC Gamer" required maxlength="80">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Tipo de equipo *</label>
+                                <select id="equipoTipo" class="form-select rounded-pill" required>
+                                    <option value="">Selecciona una opción</option>
+                                    <option value="PC">PC de escritorio</option>
+                                    <option value="Laptop">Laptop</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Marca *</label>
+                                <input id="equipoMarca" class="form-control rounded-pill" placeholder="Lenovo, ASUS, HP..." required maxlength="80">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Modelo *</label>
+                                <input id="equipoModelo" class="form-control rounded-pill" placeholder="Modelo o tarjeta madre" required maxlength="120">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Sistema operativo</label>
+                                <input id="equipoSistema" class="form-control rounded-pill" placeholder="Windows 11">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Tipo de memoria RAM *</label>
+                                <select id="equipoRamTipo" class="form-select rounded-pill" required>
+                                    <option value="">Selecciona una opción</option>
+                                    <option>DDR3</option><option>DDR4</option><option>DDR5</option>
+                                    <option>LPDDR4</option><option>LPDDR5</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">RAM instalada (GB)</label>
+                                <input id="equipoRamCapacidad" type="number" min="1" max="2048" class="form-control rounded-pill" placeholder="16">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Ranuras de RAM</label>
+                                <input id="equipoRamRanuras" type="number" min="1" max="32" class="form-control rounded-pill" placeholder="2">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Almacenamiento compatible *</label>
+                                <select id="equipoAlmacenamientoTipo" class="form-select rounded-pill" required>
+                                    <option value="">Selecciona una opción</option>
+                                    <option>SATA 2.5"</option><option>SATA M.2</option>
+                                    <option>NVMe M.2</option><option>SATA 2.5" y NVMe M.2</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Almacenamiento actual (GB)</label>
+                                <input id="equipoAlmacenamientoCapacidad" type="number" min="1" max="100000" class="form-control rounded-pill" placeholder="512">
+                            </div>
+                        </div>
+                        <div id="camposPc" class="mt-4 d-none">
+                            <h6 class="fw-bold border-bottom pb-2"><i class="bi bi-pc-display-horizontal me-2"></i>Datos adicionales de PC</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6"><label class="form-label small fw-bold">Procesador</label><input id="equipoProcesador" class="form-control rounded-pill" placeholder="Intel Core i5-12400"></div>
+                                <div class="col-md-6"><label class="form-label small fw-bold">Socket</label><input id="equipoSocket" class="form-control rounded-pill" placeholder="LGA1700 o AM4"></div>
+                                <div class="col-md-6"><label class="form-label small fw-bold">Tarjeta gráfica</label><input id="equipoGrafica" class="form-control rounded-pill" placeholder="Integrada o modelo"></div>
+                                <div class="col-md-6"><label class="form-label small fw-bold">Fuente de poder (W)</label><input id="equipoFuente" type="number" min="1" max="5000" class="form-control rounded-pill" placeholder="650"></div>
+                            </div>
+                        </div>
+                        <div id="notaLaptop" class="alert alert-info small mt-4 mb-0 d-none">
+                            <i class="bi bi-info-circle me-2"></i>En laptops registramos memoria y almacenamiento; el procesador y la tarjeta gráfica normalmente no son reemplazables.
+                        </div>
+                        <div id="msgEquipo" class="small text-center fw-medium mt-3"></div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Guardar equipo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCompatibilidad" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-secondary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-check me-2"></i>Validar compatibilidad</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <h6 id="productoCompatibilidadNombre" class="fw-bold mb-1">Producto</h6>
+                    <p id="productoCompatibilidadPrecio" class="text-muted small mb-3">$0 MXN</p>
+
+                    <label for="equipoCompatibilidad" class="form-label small fw-bold">Selecciona el equipo donde instalarás este producto</label>
+                    <select id="equipoCompatibilidad" class="form-select rounded-pill mb-3">
+                        <option value="">Selecciona un equipo</option>
+                    </select>
+
+                    <div id="compatibilidadReglas" class="small text-muted mb-3"></div>
+                    <div id="resultadoCompatibilidad" class="alert alert-light small mb-3">
+                        Selecciona un equipo para validar compatibilidad.
+                    </div>
+                    <div id="msgCompatibilidad" class="small fw-medium"></div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button id="btnAgregarCarrito" type="button" class="btn btn-success rounded-pill px-4" disabled>
+                        <i class="bi bi-bag-plus me-2"></i>Agregar al carrito
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-dark text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-bag-check me-2"></i>Carrito de compras</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="listaCarrito"></div>
+                    <div id="carritoVacio" class="text-center text-muted py-4 d-none">
+                        <i class="bi bi-cart-x fs-2 d-block mb-2"></i>
+                        Aún no has agregado productos al carrito.
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4 justify-content-between">
+                    <div>
+                        <span id="carritoTotal" class="fw-bold text-dark d-block">Total: $0 MXN</span>
+                        <span id="mensajeCheckout" class="small text-muted"></span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button id="btnVaciarCarrito" type="button" class="btn btn-outline-danger rounded-pill">Vaciar carrito</button>
+                        <button id="btnCheckout" type="button" class="btn btn-primary rounded-pill" disabled>Continuar compra</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCheckout" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-truck me-2"></i>Finalizar compra</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <form id="formCheckout">
+                    <div class="modal-body p-4">
+                        <div id="resumenCheckout" class="bg-light rounded-4 p-3 mb-4"></div>
+                        <h6 class="fw-bold mb-3">Datos de envío</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="envioNombre" class="form-label small fw-bold">Nombre completo *</label>
+                                <input id="envioNombre" class="form-control rounded-pill" maxlength="120" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="envioTelefono" class="form-label small fw-bold">Teléfono *</label>
+                                <input id="envioTelefono" type="tel" class="form-control rounded-pill" maxlength="30" required>
+                            </div>
+                            <div class="col-12">
+                                <label for="envioDireccion" class="form-label small fw-bold">Dirección *</label>
+                                <input id="envioDireccion" class="form-control rounded-pill" maxlength="200" placeholder="Calle, número y colonia" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="envioCiudad" class="form-label small fw-bold">Ciudad *</label>
+                                <input id="envioCiudad" class="form-control rounded-pill" maxlength="80" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="envioEstado" class="form-label small fw-bold">Estado *</label>
+                                <input id="envioEstado" class="form-control rounded-pill" maxlength="80" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="envioCodigoPostal" class="form-label small fw-bold">Código postal *</label>
+                                <input id="envioCodigoPostal" class="form-control rounded-pill" maxlength="10" pattern="[0-9]{5}" required>
+                            </div>
+                        </div>
+                        <div id="msgCheckout" class="small fw-medium mt-3"></div>
+                    </div>
+                    <div class="modal-footer border-0 px-4 pb-4 justify-content-between">
+                        <span id="checkoutTotal" class="fw-bold">Total: $0 MXN</span>
+                        <button id="btnConfirmarCompra" type="submit" class="btn btn-primary rounded-pill px-4">
+                            Confirmar compra
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalCompras" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-dark text-white rounded-top-4">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-receipt me-2"></i>Mis compras</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="listaCompras">
+                        <p class="text-muted text-center mb-0">Cargando compras...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE CONTACTO -->
     <div class="modal fade" id="modalContacto" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -361,20 +604,665 @@
         emailjs.init({ publicKey: EMAILJS_CONFIG.publicKey });
 
         const cuentaUsuario = document.getElementById('cuentaUsuario');
+        let sesionUsuario = null;
+        let equiposUsuario = [];
+        let productosCatalogo = [];
+        let productoCompatibilidadActual = null;
+        let resultadoCompatibilidadActual = null;
+        let carrito = [];
 
         function mostrarUsuario(user) {
-            cuentaUsuario.innerHTML = `<i class="bi bi-person-check me-1"></i>${user.name}`;
+            sesionUsuario = user;
+            cuentaUsuario.innerHTML = `<i class="bi bi-person-check me-1"></i>${escaparHTML(user.name)}`;
             cuentaUsuario.removeAttribute('data-bs-target');
             cuentaUsuario.setAttribute('data-bs-toggle', 'dropdown');
             cuentaUsuario.title = `Cuenta de ${user.name}`;
+            cargarCarrito();
+            actualizarIndicadorCarrito();
         }
 
         function mostrarCuentaInicial() {
+            sesionUsuario = null;
+            equiposUsuario = [];
+            carrito = [];
             cuentaUsuario.innerHTML = '<i class="bi bi-person"></i>';
             cuentaUsuario.setAttribute('data-bs-toggle', 'modal');
             cuentaUsuario.setAttribute('data-bs-target', '#modalAuth');
             cuentaUsuario.title = 'Mi Cuenta';
+            actualizarIndicadorCarrito();
+            renderizarCarrito();
         }
+
+        function escaparHTML(valor) {
+            return String(valor ?? '').replace(/[&<>"']/g, (caracter) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+            }[caracter]));
+        }
+
+        function solicitarInicioSesion(mensaje) {
+            const msgLogin = document.getElementById('msgLogin');
+            msgLogin.textContent = mensaje;
+            msgLogin.className = 'mt-3 small text-center text-warning fw-medium';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAuth')).show();
+        }
+
+        function formatoFecha(fecha) {
+            return new Intl.DateTimeFormat('es-MX', {
+                dateStyle: 'medium',
+                timeStyle: 'short'
+            }).format(new Date(fecha));
+        }
+
+        function claseEstadoOrden(estado) {
+            const clases = {
+                'Pendiente de pago': 'bg-warning text-dark',
+                Pagada: 'bg-success',
+                'En preparación': 'bg-info text-dark',
+                Enviada: 'bg-primary',
+                Entregada: 'bg-success',
+                Cancelada: 'bg-danger'
+            };
+            return clases[estado] || 'bg-secondary';
+        }
+
+        function mostrarCompras(orders) {
+            const lista = document.getElementById('listaCompras');
+            lista.innerHTML = '';
+            if (!orders.length) {
+                lista.innerHTML = `
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-receipt-cutoff fs-1 d-block mb-3"></i>
+                        Aún no tienes compras registradas.
+                    </div>
+                `;
+                return;
+            }
+
+            orders.forEach((order) => {
+                const numeroOrden = String(order._id).slice(-8).toUpperCase();
+                const items = order.items.map((item) => `
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <div class="fw-bold">${escaparHTML(item.nombre)}</div>
+                                <div class="small text-muted">Cantidad: ${item.cantidad}</div>
+                                <div class="small text-muted">Equipo: ${escaparHTML(item.equipoNombre)}</div>
+                                <div class="small text-muted">Compatibilidad: ${escaparHTML(item.compatibilidad)}</div>
+                            </div>
+                            <div class="text-end fw-bold">$${Number(item.subtotal).toLocaleString()} MXN</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                lista.insertAdjacentHTML('beforeend', `
+                    <div class="card border-0 shadow-sm rounded-4 mb-3">
+                        <div class="card-body p-4">
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                                <div>
+                                    <div class="small text-muted">Orden #${numeroOrden}</div>
+                                    <h5 class="fw-bold mb-1">Compra del ${formatoFecha(order.createdAt)}</h5>
+                                    <div class="small text-muted">Envío a: ${escaparHTML(order.envio.ciudad)}, ${escaparHTML(order.envio.estado)}</div>
+                                </div>
+                                <span class="badge ${claseEstadoOrden(order.estado)} rounded-pill px-3 py-2">${escaparHTML(order.estado)}</span>
+                            </div>
+                            <div class="mt-3">${items}</div>
+                            <div class="border-top mt-3 pt-3 d-flex justify-content-end">
+                                <span class="fw-bold">Total: $${Number(order.total).toLocaleString()} MXN</span>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        async function cargarCompras() {
+            const lista = document.getElementById('listaCompras');
+            lista.innerHTML = '<p class="text-muted text-center mb-0">Cargando compras...</p>';
+            try {
+                const respuesta = await fetch('/api/orders', { credentials: 'include' });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudieron cargar tus compras');
+                mostrarCompras(data.orders || []);
+            } catch (error) {
+                lista.innerHTML = `<p class="text-danger text-center mb-0">${escaparHTML(error.message)}</p>`;
+            }
+        }
+
+        function obtenerClaveCarrito() {
+            return sesionUsuario?.email ? `carrito:${sesionUsuario.email}` : null;
+        }
+
+        function guardarCarrito() {
+            const clave = obtenerClaveCarrito();
+            if (!clave) return;
+            localStorage.setItem(clave, JSON.stringify(carrito));
+        }
+
+        function cargarCarrito() {
+            const clave = obtenerClaveCarrito();
+            if (!clave) {
+                carrito = [];
+                return;
+            }
+            try {
+                const data = localStorage.getItem(clave);
+                carrito = data ? JSON.parse(data) : [];
+            } catch (error) {
+                carrito = [];
+            }
+        }
+
+        function actualizarIndicadorCarrito() {
+            const contador = document.getElementById('carritoCantidad');
+            const total = carrito.reduce((suma, item) => suma + item.cantidad, 0);
+            contador.textContent = total;
+            contador.classList.toggle('d-none', total === 0);
+        }
+
+        function renderizarCarrito() {
+            const lista = document.getElementById('listaCarrito');
+            const vacio = document.getElementById('carritoVacio');
+            const totalElemento = document.getElementById('carritoTotal');
+            const btnVaciar = document.getElementById('btnVaciarCarrito');
+            const btnCheckout = document.getElementById('btnCheckout');
+            const mensajeCheckout = document.getElementById('mensajeCheckout');
+
+            lista.innerHTML = '';
+            vacio.classList.toggle('d-none', carrito.length > 0);
+            btnVaciar.disabled = carrito.length === 0;
+            btnCheckout.disabled = true;
+            mensajeCheckout.textContent = carrito.length ? 'Validando compatibilidad...' : '';
+            mensajeCheckout.className = 'small text-muted';
+
+            if (carrito.length === 0) {
+                totalElemento.textContent = 'Total: $0 MXN';
+                return;
+            }
+
+            let total = 0;
+            carrito.forEach((item, index) => {
+                const subtotal = item.precio * item.cantidad;
+                total += subtotal;
+                lista.insertAdjacentHTML('beforeend', `
+                    <div class="border rounded-4 p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div>
+                                <h6 class="fw-bold mb-1">${escaparHTML(item.nombre)}</h6>
+                                <p class="small text-muted mb-1">Equipo: ${escaparHTML(item.equipoNombre)}</p>
+                                <p class="small text-muted mb-1">Compatibilidad: ${escaparHTML(item.detalleCompatibilidad)}</p>
+                                <p class="small mb-0"><strong>Cantidad:</strong> ${item.cantidad}</p>
+                            </div>
+                            <div class="text-end">
+                                <p class="fw-bold mb-2">$${subtotal.toLocaleString()} MXN</p>
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill eliminar-item-carrito" data-index="${index}">
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+
+            totalElemento.textContent = `Total: $${total.toLocaleString()} MXN`;
+            lista.querySelectorAll('.eliminar-item-carrito').forEach((boton) => {
+                boton.addEventListener('click', () => {
+                    carrito.splice(Number(boton.dataset.index), 1);
+                    guardarCarrito();
+                    actualizarIndicadorCarrito();
+                    renderizarCarrito();
+                });
+            });
+            validarCarritoFinal();
+        }
+
+        function prepararCheckout() {
+            const resumen = document.getElementById('resumenCheckout');
+            const total = carrito.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
+            resumen.innerHTML = carrito.map((item) => `
+                <div class="d-flex justify-content-between small mb-2">
+                    <span>${escaparHTML(item.nombre)} x${item.cantidad}<br><span class="text-muted">Equipo: ${escaparHTML(item.equipoNombre)}</span></span>
+                    <strong>$${(item.precio * item.cantidad).toLocaleString()} MXN</strong>
+                </div>
+            `).join('');
+            document.getElementById('checkoutTotal').textContent = `Total: $${total.toLocaleString()} MXN`;
+            document.getElementById('msgCheckout').textContent = '';
+            document.getElementById('msgCheckout').className = 'small fw-medium mt-3';
+        }
+
+        async function validarCarritoFinal() {
+            const btnCheckout = document.getElementById('btnCheckout');
+            const mensajeCheckout = document.getElementById('mensajeCheckout');
+            if (!sesionUsuario || !carrito.length) {
+                btnCheckout.disabled = true;
+                return false;
+            }
+
+            try {
+                const [respuestaEquipos, respuestaProductos] = await Promise.all([
+                    fetch('/api/auth/equipos', { credentials: 'include' }),
+                    fetch('/api/productos')
+                ]);
+                const equiposData = await respuestaEquipos.json();
+                const productos = await respuestaProductos.json();
+                if (!respuestaEquipos.ok || !respuestaProductos.ok) {
+                    throw new Error('No se pudo confirmar la compatibilidad del carrito');
+                }
+
+                equiposUsuario = equiposData.equipos || [];
+                const problemas = [];
+                carrito.forEach((item) => {
+                    const producto = productos.find((elemento) => String(elemento._id) === String(item.productoId));
+                    const equipo = equiposUsuario.find((elemento) => String(elemento._id) === String(item.equipoId));
+                    if (!producto || !equipo) {
+                        problemas.push(`${item.nombre}: producto o equipo ya no disponible`);
+                        return;
+                    }
+                    if (Number(item.precio) !== Number(producto.precio)) {
+                        problemas.push(`${item.nombre}: el precio cambió, actualiza el carrito`);
+                        return;
+                    }
+                    if (!Number.isFinite(producto.stock) || producto.stock < item.cantidad) {
+                        problemas.push(`${item.nombre}: stock insuficiente`);
+                        return;
+                    }
+
+                    const resultado = validarCompatibilidad(producto, equipo);
+                    if (resultado.estado !== 'compatible') {
+                        problemas.push(`${item.nombre}: ${resultado.mensaje}`);
+                    }
+                });
+
+                if (problemas.length) {
+                    btnCheckout.disabled = true;
+                    mensajeCheckout.textContent = `Compra bloqueada: ${problemas.join(' ')}`;
+                    mensajeCheckout.className = 'small text-danger';
+                    return false;
+                }
+
+                btnCheckout.disabled = false;
+                mensajeCheckout.textContent = 'Todos los productos son compatibles con sus equipos.';
+                mensajeCheckout.className = 'small text-success';
+                return true;
+            } catch (error) {
+                btnCheckout.disabled = true;
+                mensajeCheckout.textContent = error.message;
+                mensajeCheckout.className = 'small text-danger';
+                return false;
+            }
+        }
+
+        function obtenerTiposAlmacenamiento(tipo) {
+            const mapa = {
+                'SATA 2.5"': ['SATA_25'],
+                'SATA M.2': ['SATA_M2'],
+                'NVMe M.2': ['NVME_M2'],
+                'SATA 2.5" y NVMe M.2': ['SATA_25', 'NVME_M2']
+            };
+            return mapa[tipo] || [];
+        }
+
+        function validarCompatibilidad(producto, equipo) {
+            const reglas = producto.compatibilidad || {};
+            if (reglas.tipoComponente === 'RAM') {
+                const ramTipos = Array.isArray(reglas.ramTipos) ? reglas.ramTipos : [];
+                if (!ramTipos.length) {
+                    return { estado: 'incompleta', mensaje: 'Este producto no tiene definido el tipo de RAM requerido.' };
+                }
+                return ramTipos.includes(equipo.ramTipo)
+                    ? { estado: 'compatible', mensaje: `Compatible: tu equipo usa ${equipo.ramTipo} y el producto acepta ${ramTipos.join(', ')}.` }
+                    : { estado: 'no-compatible', mensaje: `No compatible: tu equipo usa ${equipo.ramTipo} y el producto requiere ${ramTipos.join(', ')}.` };
+            }
+
+            if (reglas.tipoComponente === 'ALMACENAMIENTO') {
+                const almacenamientoTipos = Array.isArray(reglas.almacenamientoTipos) ? reglas.almacenamientoTipos : [];
+                if (!almacenamientoTipos.length) {
+                    return { estado: 'incompleta', mensaje: 'Este producto no tiene definido el tipo de almacenamiento requerido.' };
+                }
+                const tiposEquipo = obtenerTiposAlmacenamiento(equipo.almacenamientoTipo);
+                const compatible = almacenamientoTipos.some((tipo) => tiposEquipo.includes(tipo));
+                return compatible
+                    ? { estado: 'compatible', mensaje: `Compatible: tu equipo soporta ${equipo.almacenamientoTipo}.` }
+                    : { estado: 'no-compatible', mensaje: `No compatible: tu equipo soporta ${equipo.almacenamientoTipo}, pero el producto requiere ${almacenamientoTipos.join(', ')}.` };
+            }
+
+            return {
+                estado: 'incompleta',
+                mensaje: 'Aún no hay reglas de compatibilidad para este tipo de producto.'
+            };
+        }
+
+        function badgeCompatibilidad(reglas) {
+            if (reglas.tipoComponente === 'RAM') return `<span class="badge bg-info-subtle text-info-emphasis">RAM ${escaparHTML((reglas.ramTipos || []).join(', ') || 'sin especificar')}</span>`;
+            if (reglas.tipoComponente === 'ALMACENAMIENTO') return `<span class="badge bg-warning-subtle text-warning-emphasis">Almacenamiento ${escaparHTML((reglas.almacenamientoTipos || []).join(', ') || 'sin especificar')}</span>`;
+            return '<span class="badge bg-secondary-subtle text-secondary-emphasis">Compatibilidad pendiente</span>';
+        }
+
+        function mostrarEquipos(equipos) {
+            const lista = document.getElementById('listaEquipos');
+            const sinEquipos = document.getElementById('sinEquipos');
+
+            lista.innerHTML = '';
+            sinEquipos.classList.toggle('d-none', equipos.length > 0);
+            if (equipos.length === 0) return;
+
+            equipos.forEach((equipo) => {
+                const detallesPc = equipo.tipo === 'PC' && equipo.procesador
+                    ? `<div><strong>Procesador:</strong> ${escaparHTML(equipo.procesador)}</div>`
+                    : '';
+                lista.insertAdjacentHTML('beforeend', `
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0 bg-light rounded-4">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <div>
+                                        <span class="badge ${equipo.tipo === 'PC' ? 'bg-dark' : 'bg-primary'} rounded-pill">${escaparHTML(equipo.tipo)}</span>
+                                        <h5 class="fw-bold mt-2 mb-1">${escaparHTML(equipo.nombre)}</h5>
+                                        <p class="text-muted small mb-3">${escaparHTML(equipo.marca)} ${escaparHTML(equipo.modelo)}</p>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-outline-primary rounded-circle editar-equipo" data-equipo-id="${escaparHTML(equipo._id)}" title="Editar equipo" aria-label="Editar ${escaparHTML(equipo.nombre)}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-circle eliminar-equipo" data-equipo-id="${escaparHTML(equipo._id)}" title="Eliminar equipo" aria-label="Eliminar ${escaparHTML(equipo.nombre)}">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="small text-muted">
+                                    <div><strong>RAM:</strong> ${escaparHTML(equipo.ramTipo)}${equipo.ramCapacidad ? `, ${escaparHTML(equipo.ramCapacidad)} GB` : ''}</div>
+                                    <div><strong>Almacenamiento:</strong> ${escaparHTML(equipo.almacenamientoTipo)}</div>
+                                    ${detallesPc}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+
+            lista.querySelectorAll('.eliminar-equipo').forEach((boton) => {
+                boton.addEventListener('click', () => eliminarEquipo(boton.dataset.equipoId));
+            });
+            lista.querySelectorAll('.editar-equipo').forEach((boton) => {
+                boton.addEventListener('click', () => editarEquipo(boton.dataset.equipoId));
+            });
+        }
+
+        async function cargarEquipos() {
+            const lista = document.getElementById('listaEquipos');
+            lista.innerHTML = '<p class="text-muted text-center mb-0">Cargando equipos...</p>';
+            document.getElementById('sinEquipos').classList.add('d-none');
+
+            try {
+                const respuesta = await fetch('/api/auth/equipos', { credentials: 'include' });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudieron cargar los equipos');
+                equiposUsuario = data.equipos || [];
+                mostrarEquipos(data.equipos);
+            } catch (error) {
+                equiposUsuario = [];
+                lista.innerHTML = `<p class="text-danger text-center mb-0">${escaparHTML(error.message)}</p>`;
+            }
+        }
+
+        async function eliminarEquipo(equipoId) {
+            if (!window.confirm('¿Quieres eliminar este equipo de tu cuenta?')) return;
+
+            try {
+                const respuesta = await fetch(`/api/auth/equipos/${encodeURIComponent(equipoId)}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudo eliminar el equipo');
+                cargarEquipos();
+            } catch (error) {
+                document.getElementById('listaEquipos').insertAdjacentHTML(
+                    'beforeend',
+                    `<p class="text-danger small text-center mt-2">${escaparHTML(error.message)}</p>`
+                );
+            }
+        }
+
+        function abrirModalNuevoEquipo() {
+            document.getElementById('formEquipo').removeAttribute('data-equipo-id');
+            document.querySelector('#modalNuevoEquipo .modal-title').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Agregar equipo';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevoEquipo')).show();
+        }
+
+        function editarEquipo(equipoId) {
+            const equipo = equiposUsuario.find((item) => String(item._id) === String(equipoId));
+            if (!equipo) return;
+
+            const valores = {
+                equipoNombre: equipo.nombre,
+                equipoTipo: equipo.tipo,
+                equipoMarca: equipo.marca,
+                equipoModelo: equipo.modelo,
+                equipoSistema: equipo.sistema || '',
+                equipoRamTipo: equipo.ramTipo,
+                equipoRamCapacidad: equipo.ramCapacidad || '',
+                equipoRamRanuras: equipo.ramRanuras || '',
+                equipoAlmacenamientoTipo: equipo.almacenamientoTipo,
+                equipoAlmacenamientoCapacidad: equipo.almacenamientoCapacidad || '',
+                equipoProcesador: equipo.procesador || '',
+                equipoSocket: equipo.socket || '',
+                equipoGrafica: equipo.tarjetaGrafica || '',
+                equipoFuente: equipo.fuentePotencia || ''
+            };
+            Object.entries(valores).forEach(([id, value]) => {
+                document.getElementById(id).value = value;
+            });
+            document.getElementById('formEquipo').dataset.equipoId = equipoId;
+            document.querySelector('#modalNuevoEquipo .modal-title').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar equipo';
+            document.getElementById('camposPc').classList.toggle('d-none', equipo.tipo !== 'PC');
+            document.getElementById('notaLaptop').classList.toggle('d-none', equipo.tipo !== 'Laptop');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEquipos')).hide();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevoEquipo')).show();
+        }
+
+        document.getElementById('misEquipos').addEventListener('click', () => {
+            if (!sesionUsuario) {
+                solicitarInicioSesion('Primero inicia sesión para administrar tus equipos.');
+                return;
+            }
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEquipos')).show();
+            cargarEquipos();
+        });
+
+        document.getElementById('misCompras').addEventListener('click', () => {
+            if (!sesionUsuario) {
+                solicitarInicioSesion('Primero inicia sesión para consultar tus compras.');
+                return;
+            }
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCompras')).show();
+            cargarCompras();
+        });
+
+        document.getElementById('agregarEquipo').addEventListener('click', () => {
+            if (!sesionUsuario) {
+                solicitarInicioSesion('Primero inicia sesión para registrar un equipo.');
+                return;
+            }
+            abrirModalNuevoEquipo();
+        });
+        document.getElementById('nuevoEquipoDesdeLista').addEventListener('click', () => {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEquipos')).hide();
+            abrirModalNuevoEquipo();
+        });
+
+        document.getElementById('equipoTipo').addEventListener('change', (event) => {
+            const esPc = event.target.value === 'PC';
+            document.getElementById('camposPc').classList.toggle('d-none', !esPc);
+            document.getElementById('notaLaptop').classList.toggle('d-none', esPc || !event.target.value);
+        });
+
+        document.getElementById('formEquipo').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const tipo = document.getElementById('equipoTipo').value;
+            const equipoId = event.currentTarget.dataset.equipoId;
+            const mensaje = document.getElementById('msgEquipo');
+            const valor = (id) => document.getElementById(id).value.trim();
+            const numero = (id) => document.getElementById(id).value ? Number(document.getElementById(id).value) : undefined;
+            const datos = {
+                nombre: valor('equipoNombre'),
+                tipo,
+                marca: valor('equipoMarca'),
+                modelo: valor('equipoModelo'),
+                sistema: valor('equipoSistema'),
+                ramTipo: valor('equipoRamTipo'),
+                ramCapacidad: numero('equipoRamCapacidad'),
+                ramRanuras: numero('equipoRamRanuras'),
+                almacenamientoTipo: valor('equipoAlmacenamientoTipo'),
+                almacenamientoCapacidad: numero('equipoAlmacenamientoCapacidad')
+            };
+
+            if (tipo === 'PC') {
+                datos.procesador = valor('equipoProcesador');
+                datos.socket = valor('equipoSocket');
+                datos.tarjetaGrafica = valor('equipoGrafica');
+                datos.fuentePotencia = numero('equipoFuente');
+            }
+
+            mensaje.textContent = 'Guardando equipo...';
+            mensaje.className = 'small text-center text-info fw-medium mt-3';
+
+            try {
+                const respuesta = await fetch(equipoId
+                    ? `/api/auth/equipos/${encodeURIComponent(equipoId)}`
+                    : '/api/auth/equipos', {
+                    method: equipoId ? 'PUT' : 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(datos)
+                });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudo guardar el equipo');
+
+                mensaje.textContent = data.message;
+                mensaje.className = 'small text-center text-success fw-medium mt-3';
+                document.getElementById('formEquipo').reset();
+                document.getElementById('formEquipo').removeAttribute('data-equipo-id');
+                document.getElementById('camposPc').classList.add('d-none');
+                document.getElementById('notaLaptop').classList.add('d-none');
+                document.querySelector('#modalNuevoEquipo .modal-title').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Agregar equipo';
+                cargarEquipos();
+                setTimeout(() => {
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevoEquipo')).hide();
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEquipos')).show();
+                }, 500);
+            } catch (error) {
+                mensaje.textContent = error.message;
+                mensaje.className = 'small text-center text-danger fw-medium mt-3';
+            }
+        });
+
+        function llenarEquiposEnSelector() {
+            const selector = document.getElementById('equipoCompatibilidad');
+            selector.innerHTML = '<option value="">Selecciona un equipo</option>';
+            equiposUsuario.forEach((equipo) => {
+                selector.insertAdjacentHTML(
+                    'beforeend',
+                    `<option value="${escaparHTML(equipo._id)}">${escaparHTML(equipo.nombre)} (${escaparHTML(equipo.tipo)} - ${escaparHTML(equipo.ramTipo)} / ${escaparHTML(equipo.almacenamientoTipo)})</option>`
+                );
+            });
+        }
+
+        function mostrarResultadoCompatibilidad(resultado) {
+            const contenedor = document.getElementById('resultadoCompatibilidad');
+            const clases = {
+                compatible: 'alert alert-success small mb-3',
+                'no-compatible': 'alert alert-danger small mb-3',
+                incompleta: 'alert alert-warning small mb-3'
+            };
+            contenedor.className = clases[resultado.estado] || 'alert alert-light small mb-3';
+            contenedor.textContent = resultado.mensaje;
+            document.getElementById('btnAgregarCarrito').disabled = resultado.estado !== 'compatible';
+        }
+
+        async function abrirModalCompatibilidad(productoId) {
+            if (!sesionUsuario) {
+                solicitarInicioSesion('Inicia sesión para validar compatibilidad y agregar al carrito.');
+                return;
+            }
+
+            if (!equiposUsuario.length) {
+                await cargarEquipos();
+            }
+            if (!equiposUsuario.length) {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEquipos')).show();
+                document.getElementById('listaEquipos').insertAdjacentHTML(
+                    'beforeend',
+                    '<p class="text-warning text-center small mt-3">Registra al menos un equipo para validar compatibilidad.</p>'
+                );
+                return;
+            }
+
+            productoCompatibilidadActual = productosCatalogo.find((producto) => String(producto._id) === productoId) || null;
+            resultadoCompatibilidadActual = null;
+            if (!productoCompatibilidadActual) return;
+
+            document.getElementById('productoCompatibilidadNombre').textContent = productoCompatibilidadActual.nombre;
+            document.getElementById('productoCompatibilidadPrecio').textContent = `$${Number(productoCompatibilidadActual.precio || 0).toLocaleString()} MXN`;
+            document.getElementById('compatibilidadReglas').innerHTML = badgeCompatibilidad(productoCompatibilidadActual.compatibilidad || {});
+            document.getElementById('msgCompatibilidad').textContent = '';
+            document.getElementById('equipoCompatibilidad').value = '';
+            document.getElementById('btnAgregarCarrito').disabled = true;
+            document.getElementById('resultadoCompatibilidad').className = 'alert alert-light small mb-3';
+            document.getElementById('resultadoCompatibilidad').textContent = 'Selecciona un equipo para validar compatibilidad.';
+            llenarEquiposEnSelector();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCompatibilidad')).show();
+        }
+
+        function evaluarCompatibilidadSeleccionada() {
+            const equipoId = document.getElementById('equipoCompatibilidad').value;
+            if (!equipoId || !productoCompatibilidadActual) {
+                document.getElementById('btnAgregarCarrito').disabled = true;
+                return;
+            }
+
+            const equipo = equiposUsuario.find((item) => String(item._id) === equipoId);
+            if (!equipo) return;
+            resultadoCompatibilidadActual = {
+                ...validarCompatibilidad(productoCompatibilidadActual, equipo),
+                equipoId: String(equipo._id),
+                equipoNombre: equipo.nombre
+            };
+            mostrarResultadoCompatibilidad(resultadoCompatibilidadActual);
+        }
+
+        document.getElementById('equipoCompatibilidad').addEventListener('change', evaluarCompatibilidadSeleccionada);
+
+        document.getElementById('btnAgregarCarrito').addEventListener('click', () => {
+            if (!productoCompatibilidadActual || !resultadoCompatibilidadActual || resultadoCompatibilidadActual.estado !== 'compatible') {
+                return;
+            }
+
+            const existente = carrito.find((item) =>
+                item.productoId === String(productoCompatibilidadActual._id)
+                && item.equipoId === resultadoCompatibilidadActual.equipoId
+            );
+
+            if (existente) {
+                existente.cantidad += 1;
+            } else {
+                carrito.push({
+                    productoId: String(productoCompatibilidadActual._id),
+                    nombre: productoCompatibilidadActual.nombre,
+                    precio: Number(productoCompatibilidadActual.precio || 0),
+                    cantidad: 1,
+                    equipoId: resultadoCompatibilidadActual.equipoId,
+                    equipoNombre: resultadoCompatibilidadActual.equipoNombre,
+                    detalleCompatibilidad: resultadoCompatibilidadActual.mensaje
+                });
+            }
+
+            guardarCarrito();
+            actualizarIndicadorCarrito();
+            renderizarCarrito();
+            const mensaje = document.getElementById('msgCompatibilidad');
+            mensaje.textContent = 'Producto agregado al carrito.';
+            mensaje.className = 'small fw-medium text-success';
+        });
 
         async function cargarSesion() {
             try {
@@ -382,9 +1270,12 @@
                 if (respuesta.ok) {
                     const data = await respuesta.json();
                     mostrarUsuario(data.user);
+                } else {
+                    mostrarCuentaInicial();
                 }
             } catch (error) {
                 console.error('No se pudo comprobar la sesión:', error);
+                mostrarCuentaInicial();
             }
         }
 
@@ -406,6 +1297,7 @@
 
                 const respuesta = await fetch(url);
                 const productos = await respuesta.json();
+                productosCatalogo = productos;
                 
                 const contenedor = document.getElementById('contenedor-productos');
                 contenedor.innerHTML = ''; 
@@ -415,7 +1307,8 @@
                     return;
                 }
 
-                productos.forEach(producto => {
+                productos.forEach((producto) => {
+                    const compatibilidad = producto.compatibilidad || {};
                     const cardHTML = `
                         <div class="col">
                             <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
@@ -426,16 +1319,21 @@
                                     <i class="bi bi-pc-display-horizontal display-1 text-dark"></i>
                                 </div>
                                 <div class="card-body p-0 d-flex flex-column">
-                                    <h5 class="card-title fw-bold">${producto.nombre}</h5>
-                                    <p class="card-text text-muted small">${producto.descripcion_corta}</p>
+                                    <h5 class="card-title fw-bold">${escaparHTML(producto.nombre)}</h5>
+                                    <p class="card-text text-muted small">${escaparHTML(producto.descripcion_corta || 'Sin descripción')}</p>
                                     <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
-                                    <p class="fw-bold fs-5 mt-auto">$${producto.precio.toLocaleString()} MXN</p>
-                                    <button class="btn btn-dark rounded-pill w-100 mt-2">Validar Compatibilidad</button>
+                                    <div class="mb-2">${badgeCompatibilidad(compatibilidad)}</div>
+                                    <p class="fw-bold fs-5 mt-auto">$${Number(producto.precio || 0).toLocaleString()} MXN</p>
+                                    <button class="btn btn-dark rounded-pill w-100 mt-2 btn-validar-compatibilidad" data-producto-id="${escaparHTML(String(producto._id))}">Validar Compatibilidad</button>
                                 </div>
                             </div>
                         </div>
                     `;
                     contenedor.innerHTML += cardHTML;
+                });
+
+                contenedor.querySelectorAll('.btn-validar-compatibilidad').forEach((boton) => {
+                    boton.addEventListener('click', () => abrirModalCompatibilidad(boton.dataset.productoId));
                 });
             } catch (error) {
                 console.error("Error al conectar con el backend de productos:", error);
@@ -448,6 +1346,79 @@
                 boton.classList.add('active');
                 cargarProductos(boton.dataset.categoria);
             });
+        });
+
+        document.getElementById('btnVaciarCarrito').addEventListener('click', () => {
+            if (!carrito.length) return;
+            carrito = [];
+            guardarCarrito();
+            actualizarIndicadorCarrito();
+            renderizarCarrito();
+        });
+
+        document.getElementById('btnCheckout').addEventListener('click', async () => {
+            const carritoValido = await validarCarritoFinal();
+            if (!carritoValido) return;
+            prepararCheckout();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCarrito')).hide();
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCheckout')).show();
+        });
+
+        document.getElementById('formCheckout').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const boton = document.getElementById('btnConfirmarCompra');
+            const mensaje = document.getElementById('msgCheckout');
+            const valor = (id) => document.getElementById(id).value.trim();
+            const envio = {
+                nombre: valor('envioNombre'),
+                telefono: valor('envioTelefono'),
+                direccion: valor('envioDireccion'),
+                ciudad: valor('envioCiudad'),
+                estado: valor('envioEstado'),
+                codigoPostal: valor('envioCodigoPostal')
+            };
+
+            boton.disabled = true;
+            boton.textContent = 'Confirmando...';
+            mensaje.textContent = 'Validando inventario y compatibilidad...';
+            mensaje.className = 'small fw-medium mt-3 text-info';
+
+            try {
+                const respuesta = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ items: carrito, envio })
+                });
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.message || 'No se pudo confirmar la compra');
+
+                mensaje.textContent = `${data.message}. Folio: ${data.orderId}`;
+                mensaje.className = 'small fw-medium mt-3 text-success';
+                carrito = [];
+                guardarCarrito();
+                actualizarIndicadorCarrito();
+                renderizarCarrito();
+                document.getElementById('formCheckout').reset();
+                setTimeout(() => {
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCheckout')).hide();
+                }, 1800);
+            } catch (error) {
+                mensaje.textContent = error.message;
+                mensaje.className = 'small fw-medium mt-3 text-danger';
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Confirmar compra';
+            }
+        });
+
+        document.getElementById('modalCarrito').addEventListener('show.bs.modal', () => {
+            if (!sesionUsuario) {
+                solicitarInicioSesion('Inicia sesión para usar tu carrito personalizado.');
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCarrito')).hide();
+                return;
+            }
+            renderizarCarrito();
         });
 
         // 2. Manejo del Registro de Usuarios
