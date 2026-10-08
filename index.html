@@ -28,6 +28,22 @@
             padding: 10px;
             border-radius: 5px;
         }
+        #modalNuevoEquipo .modal-content {
+            max-height: calc(100vh - 2rem);
+        }
+        #modalNuevoEquipo form {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        #modalNuevoEquipo .modal-body {
+            overflow-y: auto;
+        }
+        #modalNuevoEquipo .modal-footer {
+            flex-shrink: 0;
+            background-color: white;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -374,7 +390,9 @@
                     </div>
                     <div class="modal-footer border-0 px-4 pb-4">
                         <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">Guardar equipo</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                            <i class="bi bi-save me-2"></i>Guardar y agregar equipo
+                        </button>
                     </div>
                 </form>
             </div>
@@ -1026,6 +1044,7 @@
         function abrirModalNuevoEquipo() {
             document.getElementById('formEquipo').removeAttribute('data-equipo-id');
             document.querySelector('#modalNuevoEquipo .modal-title').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Agregar equipo';
+            document.querySelector('#formEquipo button[type="submit"]').innerHTML = '<i class="bi bi-save me-2"></i>Guardar y agregar equipo';
             bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevoEquipo')).show();
         }
 
@@ -1054,6 +1073,7 @@
             });
             document.getElementById('formEquipo').dataset.equipoId = equipoId;
             document.querySelector('#modalNuevoEquipo .modal-title').innerHTML = '<i class="bi bi-pencil me-2"></i>Editar equipo';
+            document.querySelector('#formEquipo button[type="submit"]').innerHTML = '<i class="bi bi-save me-2"></i>Guardar cambios';
             document.getElementById('camposPc').classList.toggle('d-none', equipo.tipo !== 'PC');
             document.getElementById('notaLaptop').classList.toggle('d-none', equipo.tipo !== 'Laptop');
             bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEquipos')).hide();
@@ -1145,6 +1165,7 @@
                 document.getElementById('camposPc').classList.add('d-none');
                 document.getElementById('notaLaptop').classList.add('d-none');
                 document.querySelector('#modalNuevoEquipo .modal-title').innerHTML = '<i class="bi bi-plus-circle me-2"></i>Agregar equipo';
+                document.querySelector('#formEquipo button[type="submit"]').innerHTML = '<i class="bi bi-save me-2"></i>Guardar y agregar equipo';
                 cargarEquipos();
                 setTimeout(() => {
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('modalNuevoEquipo')).hide();
