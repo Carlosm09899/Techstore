@@ -502,6 +502,28 @@
                                 <input id="envioCodigoPostal" class="form-control rounded-pill" maxlength="10" pattern="[0-9]{5}" required>
                             </div>
                         </div>
+
+                        <div class="mt-4">
+                            <h6 class="fw-bold mb-3">Método de pago</h6>
+                            <div class="btn-group w-100" role="group" aria-label="Métodos de pago">
+                                <button type="button" class="btn btn-primary metodo-pago active" data-metodo-pago="Paynet">
+                                    <i class="bi bi-upc-scan me-2"></i>Paynet
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary metodo-pago" data-metodo-pago="Tarjeta">
+                                    <i class="bi bi-credit-card me-2"></i>Tarjeta
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary metodo-pago" data-metodo-pago="Transferencia">
+                                    <i class="bi bi-bank me-2"></i>Transferencia
+                                </button>
+                            </div>
+                            <div id="paynetBarcodeContainer" class="mt-3 border rounded-4 bg-light p-3">
+                                <div class="small text-muted mb-2">Código de barras de pago Paynet</div>
+                                <div id="paynetBarcodeVisual" class="d-flex justify-content-center align-items-end gap-1 bg-white border rounded-3 p-3" style="min-height: 88px; overflow-x: auto;"></div>
+                                <div id="paynetBarcodeValue" class="fw-bold text-center mt-3 fs-5"></div>
+                                <div class="small text-center text-muted mt-2">Muestra este código en la sucursal o escanéalo con la app Paynet para completar el pago.</div>
+                            </div>
+                        </div>
+
                         <div id="msgCheckout" class="small fw-medium mt-3"></div>
                     </div>
                     <div class="modal-footer border-0 px-4 pb-4 justify-content-between">
@@ -775,6 +797,7 @@
                                     <div class="small text-muted">Orden #${numeroOrden}</div>
                                     <h5 class="fw-bold mb-1">Compra del ${formatoFecha(order.createdAt)}</h5>
                                     <div class="small text-muted">Envío a: ${escaparHTML(order.envio.ciudad)}, ${escaparHTML(order.envio.estado)}</div>
+                                    <div class="small text-muted">Método de pago: ${escaparHTML(order.metodoPago || 'Paynet')}</div>
                                 </div>
                                 <span class="badge ${claseEstadoOrden(order.estado)} rounded-pill px-3 py-2">${escaparHTML(order.estado)}</span>
                             </div>
@@ -1031,6 +1054,59 @@
             validarCarritoFinal();
         }
 
+        function generarCodigoPaynet(total) {
+            const codigo = `PAY-${String(Math.floor(Math.random() * 900000 + 100000))}-${String(Math.round(total))}`;
+            const patron = '101001101101011011010110110101101110110101101101011010110101';
+            const contenedor = document.getElementById('paynetBarcodeVisual');
+            contenedor.innerHTML = '';
+
+            patron.split('').forEach((valor, index) => {
+                const barra = document.createElement('span');
+                barra.style.display = 'inline-block';
+                barra.style.width = valor === '1' ? '4px' : '2px';
+                barra.style.height = valor === '1' ? '64px' : '36px';
+                barra.style.backgroundColor = valor === '1' ? '#111827' : '#e5e7eb';
+                barra.style.borderRadius = '2px';
+                barra.style.marginRight = index % 10 === 0 ? '4px' : '1px';
+                contenedor.appendChild(barra);
+            });
+
+            document.getElementById('paynetBarcodeValue').textContent = codigo;
+            return codigo;
+        }
+
+        function actualizarMetodoPago() {
+            const metodoSeleccionado = document.querySelector('.metodo-pago.active')?.dataset.metodoPago || 'Paynet';
+            document.querySelectorAll('.metodo-pago').forEach((boton) => {
+                const activo = boton.dataset.metodoPago === metodoSeleccionado;
+                boton.classList.toggle('active', activo);
+                boton.classList.toggle('btn-primary', activo);
+                boton.classList.toggle('btn-outline-secondary', !activo);
+            });
+
+            const paynetContainer = document.getElementById('paynetBarcodeContainer');
+            paynetContainer.classList.toggle('d-none', metodoSeleccionado !== 'Paynet');
+            if (metodoSeleccionado === 'Paynet') {
+                const total = carrito.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
+                generarCodigoPaynet(total);
+            }
+            return metodoSeleccionado;
+        }
+
+        document.querySelectorAll('.metodo-pago').forEach((boton) => {
+            boton.addEventListener('click', () => {
+                document.querySelectorAll('.metodo-pago').forEach((item) => {
+                    item.classList.remove('active');
+                    item.classList.add('btn-outline-secondary');
+                    item.classList.remove('btn-primary');
+                });
+                boton.classList.add('active');
+                boton.classList.add('btn-primary');
+                boton.classList.remove('btn-outline-secondary');
+                actualizarMetodoPago();
+            });
+        });
+
         function prepararCheckout() {
             const resumen = document.getElementById('resumenCheckout');
             const total = carrito.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
@@ -1048,6 +1124,7 @@
             direccionesUsuario.forEach((direccion) => {
                 selector.insertAdjacentHTML('beforeend', `<option value="${escaparHTML(direccion._id)}">${escaparHTML(direccion.alias)} - ${escaparHTML(direccion.ciudad)}, ${escaparHTML(direccion.estado)}</option>`);
             });
+            actualizarMetodoPago();
         }
 
         function llenarDatosDireccion(direccion) {
@@ -1613,6 +1690,7 @@
             const boton = document.getElementById('btnConfirmarCompra');
             const mensaje = document.getElementById('msgCheckout');
             const valor = (id) => document.getElementById(id).value.trim();
+            const metodoPago = actualizarMetodoPago();
             const envio = {
                 nombre: valor('envioNombre'),
                 telefono: valor('envioTelefono'),
@@ -1624,7 +1702,9 @@
 
             boton.disabled = true;
             boton.textContent = 'Confirmando...';
-            mensaje.textContent = 'Validando inventario y compatibilidad...';
+            mensaje.textContent = metodoPago === 'Paynet'
+                ? 'Generando código de pago Paynet y validando la compra...'
+                : 'Validando inventario y compatibilidad...';
             mensaje.className = 'small fw-medium mt-3 text-info';
 
             try {
@@ -1632,12 +1712,12 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ items: carrito, envio })
+                    body: JSON.stringify({ items: carrito, envio, metodoPago })
                 });
                 const data = await respuesta.json();
                 if (!respuesta.ok) throw new Error(data.message || 'No se pudo confirmar la compra');
 
-                mensaje.textContent = `${data.message}. Folio: ${data.orderId}`;
+                mensaje.textContent = `${data.message}. Folio: ${data.orderId}. Método: ${metodoPago}`;
                 mensaje.className = 'small fw-medium mt-3 text-success';
                 carrito = [];
                 guardarCarrito();

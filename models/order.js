@@ -23,6 +23,11 @@ const orderSchema = new mongoose.Schema({
     estado: { type: String, required: true, trim: true, maxlength: 80 },
     codigoPostal: { type: String, required: true, trim: true, maxlength: 10 }
   },
+  metodoPago: {
+    type: String,
+    enum: ['Paynet', 'Tarjeta', 'Transferencia'],
+    default: 'Paynet'
+  },
   estado: {
     type: String,
     enum: ['Pendiente de pago', 'Pagada', 'En preparación', 'Enviada', 'Entregada', 'Cancelada'],

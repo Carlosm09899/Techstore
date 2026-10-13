@@ -146,7 +146,9 @@ app.post('/api/orders', async (req, res) => {
     const userId = obtenerIdUsuario(req, res);
     if (!userId) return;
 
-    const { items, envio } = req.body;
+    const { items, envio, metodoPago } = req.body;
+    const metodoPagoSeleccionado = String(metodoPago || 'Paynet').trim() || 'Paynet';
+
     if (!Array.isArray(items) || items.length === 0 || !envio) {
       return res.status(400).json({ message: 'El carrito y los datos de envío son obligatorios' });
     }
@@ -239,6 +241,7 @@ app.post('/api/orders', async (req, res) => {
       userId,
       items: ordenItems,
       total,
+      metodoPago: metodoPagoSeleccionado,
       envio: camposEnvio.reduce((datos, campo) => {
         datos[campo] = String(envio[campo]).trim();
         return datos;
@@ -248,7 +251,8 @@ app.post('/api/orders', async (req, res) => {
     res.status(201).json({
       message: 'Compra confirmada correctamente',
       orderId: order._id,
-      total: order.total
+      total: order.total,
+      metodoPago: order.metodoPago
     });
   } catch (error) {
     console.error('Error al crear la orden:', error.message);
