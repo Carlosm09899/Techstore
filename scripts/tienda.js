@@ -938,6 +938,7 @@ document.getElementById('direccionGuardada').addEventListener('change', (event) 
     else document.getElementById('formCheckout').reset();
 });
 
+    // 5. Manejo del Checkout con Stripe
 document.getElementById('formCheckout').addEventListener('submit', async (event) => {
     event.preventDefault();
     const boton = document.getElementById('btnPagarStripe');
