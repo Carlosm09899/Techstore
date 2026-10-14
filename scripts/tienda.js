@@ -1008,6 +1008,7 @@ document.getElementById('btnPagarPaynet').addEventListener('click', async () => 
     await confirmarCompraPaynet();
 });
 
+// Manejo del checkout con Stripe
 document.getElementById('formCheckout').addEventListener('submit', async (event) => {
     event.preventDefault();
     const boton = document.getElementById('btnPagarStripe');
