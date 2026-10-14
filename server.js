@@ -4,12 +4,11 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
+dotenv.config();
 const authRoutes = require('./routes/authRoutes');
 const User = require('./models/user');
 const Order = require('./models/order');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-dotenv.config();
 
 const app = express();
 app.use(express.static(__dirname));
@@ -274,6 +273,127 @@ app.get('/api/orders', async (req, res) => {
   } catch (error) {
     console.error('Error al obtener las compras:', error.message);
     res.status(500).json({ message: 'No se pudieron obtener tus compras' });
+  }
+});
+
+app.get('/api/paypal/client-id', (req, res) => {
+  if (!process.env.PAYPAL_CLIENT_ID) {
+    return res.status(503).json({ message: 'La integración de PayPal no está configurada' });
+  }
+  res.json({ clientId: process.env.PAYPAL_CLIENT_ID });
+});
+
+async function obtenerTokenPayPal() {
+  if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+    throw new Error('La integración de PayPal no está configurada');
+  }
+
+  const apiBaseUrl = process.env.PAYPAL_API_BASE_URL || 'https://api-m.sandbox.paypal.com';
+  const credenciales = Buffer
+    .from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`)
+    .toString('base64');
+  const respuesta = await fetch(`${apiBaseUrl}/v1/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${credenciales}`,
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: 'grant_type=client_credentials'
+  });
+
+  const data = await respuesta.json();
+  if (!respuesta.ok || !data.access_token) {
+    throw new Error('No se pudo autenticar con PayPal');
+  }
+  return { accessToken: data.access_token, apiBaseUrl };
+}
+
+async function solicitarPayPal(ruta, opciones = {}) {
+  const { accessToken, apiBaseUrl } = await obtenerTokenPayPal();
+  const respuesta = await fetch(`${apiBaseUrl}${ruta}`, {
+    ...opciones,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      ...(opciones.headers || {})
+    }
+  });
+  const data = await respuesta.json();
+  if (!respuesta.ok) {
+    throw new Error(data.message || 'PayPal rechazó la solicitud');
+  }
+  return data;
+}
+
+app.post('/api/paypal/create-order', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: 'El carrito está vacío' });
+    }
+
+    const ids = items.map((item) => item.productoId);
+    if (items.some((item) => !mongoose.Types.ObjectId.isValid(item.productoId)
+      || !Number.isInteger(Number(item.cantidad)) || Number(item.cantidad) < 1)) {
+      return res.status(400).json({ message: 'El carrito contiene datos no válidos' });
+    }
+
+    const productos = await Producto.find({ _id: { $in: ids }, activo: true }).lean();
+    let total = 0;
+    for (const item of items) {
+      const producto = productos.find((elemento) => String(elemento._id) === String(item.productoId));
+      if (!producto || !Number.isFinite(producto.precio)) {
+        return res.status(409).json({ message: 'Un producto del carrito ya no está disponible' });
+      }
+      const cantidad = Number(item.cantidad);
+      if (producto.stock < cantidad) {
+        return res.status(409).json({ message: `No hay stock suficiente para ${producto.nombre}` });
+      }
+      total += producto.precio * cantidad;
+    }
+
+    const paypalOrder = await solicitarPayPal('/v2/checkout/orders', {
+      method: 'POST',
+      headers: { 'PayPal-Request-Id': `techstore-${userId}-${Date.now()}` },
+      body: JSON.stringify({
+        intent: 'CAPTURE',
+        purchase_units: [{
+          amount: { currency_code: 'MXN', value: total.toFixed(2) }
+        }]
+      })
+    });
+
+    res.json({ orderId: paypalOrder.id });
+  } catch (error) {
+    console.error('Error al crear la orden de PayPal:', error.message);
+    res.status(500).json({ message: error.message || 'No se pudo iniciar el pago con PayPal' });
+  }
+});
+
+app.post('/api/paypal/capture-order', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    const { orderId } = req.body;
+    if (!orderId || !/^[A-Z0-9-]+$/i.test(orderId)) {
+      return res.status(400).json({ message: 'La orden de PayPal no es válida' });
+    }
+
+    const paypalOrder = await solicitarPayPal(`/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
+      method: 'POST',
+      body: '{}'
+    });
+    const estado = paypalOrder.status === 'COMPLETED' ? 'COMPLETED' : paypalOrder.status;
+    if (estado !== 'COMPLETED') {
+      return res.status(409).json({ message: 'El pago de PayPal no fue completado' });
+    }
+    res.json({ status: estado, orderId: paypalOrder.id });
+  } catch (error) {
+    console.error('Error al capturar la orden de PayPal:', error.message);
+    res.status(500).json({ message: error.message || 'No se pudo completar el pago con PayPal' });
   }
 });
 
