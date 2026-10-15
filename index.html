@@ -473,25 +473,32 @@
                         </div>
 
                         <!-- MÉTODOS DE PAGO -->
-                        <hr class="my-4">
-                        <h6 class="fw-bold mb-3">Método de pago</h6>
-                        <div class="d-flex flex-column gap-3">
+                        <div class="checkout-payment mt-4">
+                        <div class="checkout-section-title"><span>1</span><div><h6>Elige cómo pagar</h6><small>Todos tus pagos están protegidos</small></div></div>
+                        <div class="payment-options">
                             <input id="metodoPago" type="hidden" value="Paynet">
-                            <button id="btnPagarPaynet" type="button" class="btn btn-primary rounded-pill py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
-                                <i class="bi bi-upc-scan fs-5"></i> Pagar con Paynet
+                            <button id="btnPagarPaynet" type="button" class="payment-option">
+                                <span class="payment-icon paynet-icon"><i class="bi bi-upc-scan"></i></span>
+                                <span><strong>Paynet</strong><small>Paga en efectivo en sucursal</small></span>
+                                <i class="bi bi-chevron-right payment-arrow"></i>
                             </button>
-                            <div id="paynetBarcodeContainer" class="border rounded-4 bg-light p-3 d-none">
+                            <button id="btnPagarTarjeta" type="button" class="payment-option">
+                                <span class="payment-icon card-icon"><i class="bi bi-credit-card"></i></span>
+                                <span><strong>Tarjeta</strong><small>Crédito o débito · Simulado</small></span>
+                                <i class="bi bi-chevron-right payment-arrow"></i>
+                            </button>
+                            <button id="btnPagarPayPal" type="button" class="payment-option">
+                                <span class="payment-icon paypal-icon"><i class="bi bi-paypal"></i></span>
+                                <span><strong>PayPal</strong><small>Paga de forma rápida · Simulado</small></span>
+                                <i class="bi bi-chevron-right payment-arrow"></i>
+                            </button>
+                        </div>
+                            <div id="paynetBarcodeContainer" class="paynet-code d-none">
                                 <div class="small text-muted mb-2">Código de barras de pago Paynet</div>
                                 <div id="paynetBarcodeVisual" class="d-flex justify-content-center align-items-end gap-1 bg-white border rounded-3 p-3" style="min-height: 88px; overflow-x: auto;"></div>
                                 <div id="paynetBarcodeValue" class="fw-bold text-center mt-3 fs-5"></div>
                                 <div class="small text-center text-muted mt-2">Muestra este código en la sucursal o escanéalo con la app Paynet para completar el pago.</div>
                             </div>
-                            <button id="btnPagarTarjeta" type="button" class="btn btn-dark rounded-pill py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
-                                <i class="bi bi-credit-card fs-5"></i> Pagar con Tarjeta (simulado)
-                            </button>
-                            <button id="btnPagarPayPal" type="button" class="btn btn-warning rounded-pill py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
-                                <i class="bi bi-paypal fs-5"></i> Pagar con PayPal (simulado)
-                            </button>
                         </div>
 
                         <div id="msgCheckout" class="small text-center fw-medium mt-3"></div>
@@ -606,6 +613,7 @@
 
     <!-- Dependencias JS Externas -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>

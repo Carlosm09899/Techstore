@@ -13,6 +13,7 @@ let productosCatalogo = [];
 let productoCompatibilidadActual = null;
 let resultadoCompatibilidadActual = null;
 let carrito = [];
+let ultimaCompraComprobante = null;
 
 function mostrarUsuario(user) {
     sesionUsuario = user;
@@ -1022,6 +1023,147 @@ function generarCodigoPaynet(total) {
     }
 }
 
+function textoPDF(valor) {
+    return String(valor ?? '').replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
+}
+
+function monedaPDF(valor) {
+    return `$${Number(valor || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
+}
+
+function dibujarLineaPDF(doc, y, margen, ancho) {
+    doc.setDrawColor(224, 230, 238);
+    doc.line(margen, y, ancho - margen, y);
+}
+
+function generarComprobantePDF(compra) {
+    if (!window.jspdf?.jsPDF || !compra) {
+        throw new Error('No fue posible preparar el comprobante PDF');
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+        const margen = 18;
+        const ancho = 210;
+        const contenido = ancho - (margen * 2);
+        const azul = [23, 105, 224];
+        const oscuro = [29, 41, 57];
+        let y = 18;
+
+        doc.setFillColor(...azul);
+        doc.rect(0, 0, ancho, 42, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(22);
+        doc.text('TechStore', margen, 22);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text('Comprobante de compra', margen, 30);
+        doc.setFontSize(9);
+        doc.text(`Folio: ${textoPDF(compra.orderId)}`, ancho - margen, 21, { align: 'right' });
+        doc.text(`Fecha: ${textoPDF(compra.fecha)}`, ancho - margen, 28, { align: 'right' });
+
+        y = 55;
+        doc.setTextColor(...oscuro);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(13);
+        doc.text('Gracias por tu compra', margen, y);
+        y += 8;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.setTextColor(91, 105, 124);
+        doc.text('Este documento es un resumen informativo de tu pedido y no es una factura fiscal.', margen, y);
+        y += 12;
+
+        doc.setFillColor(247, 249, 252);
+        doc.roundedRect(margen, y, contenido, 31, 3, 3, 'F');
+        doc.setTextColor(...oscuro);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text('Datos del cliente', margen + 6, y + 8);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        doc.text(`Nombre: ${textoPDF(compra.envio.nombre)}`, margen + 6, y + 15);
+        doc.text(`Correo: ${textoPDF(sesionUsuario?.email || 'Registrado en TechStore')}`, margen + 6, y + 22);
+        doc.text(`Teléfono: ${textoPDF(compra.envio.telefono)}`, 112, y + 15);
+        doc.text(`Método de pago: ${textoPDF(compra.metodoPago)}`, 112, y + 22);
+        y += 40;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(...oscuro);
+        doc.text('Dirección de envío', margen, y);
+        y += 6;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9);
+        const direccion = `${compra.envio.direccion}, ${compra.envio.ciudad}, ${compra.envio.estado}, C.P. ${compra.envio.codigoPostal}`;
+        const direccionLineas = doc.splitTextToSize(textoPDF(direccion), contenido);
+        doc.text(direccionLineas, margen, y);
+        y += direccionLineas.length * 5 + 8;
+        dibujarLineaPDF(doc, y, margen, ancho);
+        y += 9;
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.text(`Productos (${compra.cantidadTotal})`, margen, y);
+        y += 8;
+        doc.setFontSize(8);
+        doc.setTextColor(91, 105, 124);
+        doc.text('PRODUCTO', margen, y);
+        doc.text('CANT.', 130, y, { align: 'right' });
+        doc.text('PRECIO', 158, y, { align: 'right' });
+        doc.text('SUBTOTAL', ancho - margen, y, { align: 'right' });
+        y += 5;
+        dibujarLineaPDF(doc, y, margen, ancho);
+        y += 7;
+
+        doc.setTextColor(...oscuro);
+        doc.setFontSize(9);
+        compra.items.forEach((item) => {
+            const detalle = `${textoPDF(item.nombre)}\nEquipo: ${textoPDF(item.equipoNombre)}\nCompatibilidad: ${textoPDF(item.compatibilidad)}`;
+            const nombre = doc.splitTextToSize(detalle, 90);
+            const alto = Math.max(7, nombre.length * 4.5);
+            if (y + alto > 270) {
+                doc.addPage();
+                y = 20;
+            }
+            doc.text(nombre, margen, y);
+            doc.text(String(item.cantidad), 130, y, { align: 'right' });
+            doc.text(monedaPDF(item.precioUnitario), 158, y, { align: 'right' });
+            doc.text(monedaPDF(item.subtotal), ancho - margen, y, { align: 'right' });
+            y += alto + 4;
+        });
+
+        dibujarLineaPDF(doc, y, margen, ancho);
+        y += 9;
+        doc.setFont('helvetica', 'normal');
+        doc.text('Total de productos', 125, y, { align: 'right' });
+        doc.text(String(compra.cantidadTotal), ancho - margen, y, { align: 'right' });
+        y += 7;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(...azul);
+        doc.text('TOTAL PAGADO', 145, y, { align: 'right' });
+        doc.text(monedaPDF(compra.total), ancho - margen, y, { align: 'right' });
+        y += 18;
+
+        doc.setFillColor(239, 247, 255);
+        doc.roundedRect(margen, y, contenido, 19, 3, 3, 'F');
+        doc.setTextColor(...azul);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9);
+        doc.text('Información de tu pedido', margen + 6, y + 7);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...oscuro);
+        doc.text('Conserva este comprobante para consultar el resumen de tu compra.', margen + 6, y + 13);
+        doc.text('Gracias por elegir TechStore.', margen + 6, y + 17);
+
+        doc.setTextColor(130, 144, 165);
+        doc.setFontSize(8);
+        doc.text('TechStore · Repuestos y componentes compatibles', ancho / 2, 287, { align: 'center' });
+    doc.save(`comprobante-TechStore-${textoPDF(compra.orderId).slice(-8)}.pdf`);
+}
+
 function obtenerDatosEnvio() {
     const valor = (id) => document.getElementById(id).value.trim();
     return {
@@ -1055,8 +1197,34 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
         const data = await respuesta.json();
         if (!respuesta.ok) throw new Error(data.message || 'No se pudo simular el pago');
 
-        mensaje.textContent = `${data.message}. Folio: ${data.orderId}`;
+        const envio = obtenerDatosEnvio();
+        const itemsCompra = carrito.map((item) => ({
+            nombre: item.nombre,
+            equipoNombre: item.equipoNombre,
+            compatibilidad: item.compatibilidad,
+            cantidad: item.cantidad,
+            precioUnitario: item.precio,
+            subtotal: item.precio * item.cantidad
+        }));
+        ultimaCompraComprobante = {
+            orderId: data.orderId,
+            fecha: new Date().toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }),
+            envio,
+            items: itemsCompra,
+            cantidadTotal: itemsCompra.reduce((total, item) => total + item.cantidad, 0),
+            total: data.total,
+            metodoPago
+        };
+        mensaje.innerHTML = `${escaparHTML(data.message)}. Folio: ${escaparHTML(data.orderId)} <button id="btnDescargarComprobante" type="button" class="btn btn-sm btn-outline-primary rounded-pill ms-2"><i class="bi bi-file-earmark-pdf me-1"></i>Descargar comprobante PDF</button>`;
         mensaje.className = 'small text-center fw-medium mt-3 text-success';
+        document.getElementById('btnDescargarComprobante').addEventListener('click', () => {
+            try {
+                generarComprobantePDF(ultimaCompraComprobante);
+            } catch (error) {
+                mensaje.textContent = error.message;
+                mensaje.className = 'small text-center fw-medium mt-3 text-danger';
+            }
+        });
         carrito = [];
         guardarCarrito();
         actualizarIndicadorCarrito();
