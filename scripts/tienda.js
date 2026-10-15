@@ -490,15 +490,15 @@ function validarCompatibilidad(producto, equipo) {
     }
 
     return {
-        estado: 'incompleta',
-        mensaje: 'Aún no hay reglas de compatibilidad para este tipo de producto.'
+        estado: 'compatible',
+        mensaje: 'Producto compatible con cualquier equipo registrado.'
     };
 }
 
 function badgeCompatibilidad(reglas) {
     if (reglas.tipoComponente === 'RAM') return `<span class="badge bg-info-subtle text-info-emphasis">RAM ${escaparHTML((reglas.ramTipos || []).join(', ') || 'sin especificar')}</span>`;
     if (reglas.tipoComponente === 'ALMACENAMIENTO') return `<span class="badge bg-warning-subtle text-warning-emphasis">Almacenamiento ${escaparHTML((reglas.almacenamientoTipos || []).join(', ') || 'sin especificar')}</span>`;
-    return '<span class="badge bg-secondary-subtle text-secondary-emphasis">Compatibilidad pendiente</span>';
+    return '<span class="badge bg-success-subtle text-success-emphasis">Compatible con cualquier equipo</span>';
 }
 
 function mostrarEquipos(equipos) {
@@ -808,6 +808,17 @@ document.getElementById('btnAgregarCarrito').addEventListener('click', () => {
         item.productoId === String(productoCompatibilidadActual._id)
         && item.equipoId === resultadoCompatibilidadActual.equipoId
     );
+    const cantidadEnCarrito = carrito
+        .filter((item) => item.productoId === String(productoCompatibilidadActual._id))
+        .reduce((total, item) => total + item.cantidad, 0);
+    const stockDisponible = Number(productoCompatibilidadActual.stock);
+
+    if (!Number.isInteger(stockDisponible) || cantidadEnCarrito >= stockDisponible) {
+        const mensaje = document.getElementById('msgCompatibilidad');
+        mensaje.textContent = 'No hay más unidades disponibles de este producto.';
+        mensaje.className = 'small fw-medium text-danger';
+        return;
+    }
 
     if (existente) {
         existente.cantidad += 1;
@@ -891,7 +902,10 @@ async function cargarProductos(categoria = '') {
                             <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
                             <div class="mb-2">${badgeCompatibilidad(compatibilidad)}</div>
                             <p class="fw-bold fs-5 mt-auto">$${Number(producto.precio || 0).toLocaleString()} MXN</p>
-                            <button class="btn btn-dark rounded-pill w-100 mt-2 btn-validar-compatibilidad" data-producto-id="${escaparHTML(String(producto._id))}">Validar Compatibilidad</button>
+                            <p class="small ${Number(producto.stock) > 0 ? 'text-muted' : 'text-danger'} mb-2">
+                                ${Number(producto.stock) > 0 ? `Disponibles: ${Number(producto.stock)}` : 'Agotado'}
+                            </p>
+                            <button class="btn btn-dark rounded-pill w-100 mt-2 btn-validar-compatibilidad" data-producto-id="${escaparHTML(String(producto._id))}" ${Number(producto.stock) > 0 ? '' : 'disabled'}>${Number(producto.stock) > 0 ? 'Validar Compatibilidad' : 'Agotado'}</button>
                         </div>
                     </div>
                 </div>

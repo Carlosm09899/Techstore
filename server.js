@@ -105,7 +105,7 @@ function validarCompatibilidadProducto(producto, equipo) {
       : { ok: false, message: `Almacenamiento incompatible: requiere ${reglas.almacenamientoTipos.join(', ')}` };
   }
 
-  return { ok: false, message: 'Este producto no tiene reglas de compatibilidad' };
+  return { ok: true, message: 'Producto compatible con cualquier equipo registrado' };
 }
 
 function obtenerIdUsuario(req, res) {
