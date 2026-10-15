@@ -24,6 +24,12 @@ function mostrarUsuario(user) {
     actualizarIndicadorCarrito();
 }
 
+function limpiarCodigoPaynet() {
+    document.getElementById('paynetBarcodeContainer').classList.add('d-none');
+    document.getElementById('paynetBarcodeVisual').replaceChildren();
+    document.getElementById('paynetBarcodeValue').textContent = '';
+}
+
 function mostrarCuentaInicial() {
     sesionUsuario = null;
     equiposUsuario = [];
@@ -340,9 +346,16 @@ function renderizarCarrito() {
                     </div>
                     <div class="text-end">
                         <p class="fw-bold mb-2">$${subtotal.toLocaleString()} MXN</p>
-                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill eliminar-item-carrito" data-index="${index}">
-                            Eliminar
-                        </button>
+                        <div class="d-flex align-items-center justify-content-end gap-2">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Cambiar cantidad">
+                                <button type="button" class="btn btn-outline-secondary disminuir-item-carrito" data-index="${index}" aria-label="Disminuir cantidad">−</button>
+                                <span class="btn btn-outline-secondary disabled cantidad-item-carrito">${item.cantidad}</span>
+                                <button type="button" class="btn btn-outline-secondary aumentar-item-carrito" data-index="${index}" aria-label="Aumentar cantidad">+</button>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill eliminar-item-carrito" data-index="${index}">
+                                Eliminar
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -350,6 +363,36 @@ function renderizarCarrito() {
     });
 
     totalElemento.textContent = `Total: $${total.toLocaleString()} MXN`;
+    lista.querySelectorAll('.disminuir-item-carrito').forEach((boton) => {
+        boton.addEventListener('click', () => {
+            const index = Number(boton.dataset.index);
+            if (carrito[index].cantidad > 1) carrito[index].cantidad -= 1;
+            else carrito.splice(index, 1);
+            guardarCarrito();
+            actualizarIndicadorCarrito();
+            renderizarCarrito();
+        });
+    });
+    lista.querySelectorAll('.aumentar-item-carrito').forEach((boton) => {
+        boton.addEventListener('click', () => {
+            const index = Number(boton.dataset.index);
+            const item = carrito[index];
+            const producto = productosCatalogo.find((elemento) => String(elemento._id) === item.productoId);
+            const stock = Number(producto?.stock);
+            const cantidadTotal = carrito
+                .filter((elemento) => elemento.productoId === item.productoId)
+                .reduce((total, elemento) => total + elemento.cantidad, 0);
+            if (!Number.isInteger(stock) || cantidadTotal >= stock) {
+                document.getElementById('mensajeCheckout').textContent = 'No hay más unidades disponibles de este producto.';
+                document.getElementById('mensajeCheckout').className = 'small text-danger';
+                return;
+            }
+            item.cantidad += 1;
+            guardarCarrito();
+            actualizarIndicadorCarrito();
+            renderizarCarrito();
+        });
+    });
     lista.querySelectorAll('.eliminar-item-carrito').forEach((boton) => {
         boton.addEventListener('click', () => {
             carrito.splice(Number(boton.dataset.index), 1);
@@ -373,6 +416,7 @@ function prepararCheckout() {
     document.getElementById('checkoutTotal').textContent = `Total: $${total.toLocaleString()} MXN`;
     document.getElementById('msgCheckout').textContent = '';
     document.getElementById('msgCheckout').className = 'small fw-medium mt-3';
+    limpiarCodigoPaynet();
     const selector = document.getElementById('direccionGuardada');
     selector.innerHTML = '<option value="">Capturar una nueva dirección</option>';
     direccionesUsuario.forEach((direccion) => {
@@ -456,13 +500,12 @@ async function validarCarritoFinal() {
 }
 
 function obtenerTiposAlmacenamiento(tipo) {
-    const mapa = {
-        'SATA 2.5"': ['SATA_25'],
-        'SATA M.2': ['SATA_M2'],
-        'NVMe M.2': ['NVME_M2'],
-        'SATA 2.5" y NVMe M.2': ['SATA_25', 'NVME_M2']
-    };
-    return mapa[tipo] || [];
+    const valor = String(tipo || '').toLowerCase();
+    const tipos = [];
+    if (valor.includes('sata') && (valor.includes('2.5') || valor.includes('25'))) tipos.push('SATA_25');
+    if (valor.includes('sata') && valor.includes('m.2')) tipos.push('SATA_M2');
+    if (valor.includes('nvme')) tipos.push('NVME_M2');
+    return tipos;
 }
 
 function validarCompatibilidad(producto, equipo) {
@@ -485,7 +528,7 @@ function validarCompatibilidad(producto, equipo) {
         const tiposEquipo = obtenerTiposAlmacenamiento(equipo.almacenamientoTipo);
         const compatible = almacenamientoTipos.some((tipo) => tiposEquipo.includes(tipo));
         return compatible
-            ? { estado: 'compatible', mensaje: `Compatible: tu equipo soporta ${equipo.almacenamientoTipo}.` }
+            ? { estado: 'compatible', mensaje: `Compatible: tu equipo soporta ${equipo.almacenamientoTipo} y el producto requiere ${almacenamientoTipos.join(', ')}.` }
             : { estado: 'no-compatible', mensaje: `No compatible: tu equipo soporta ${equipo.almacenamientoTipo}, pero el producto requiere ${almacenamientoTipos.join(', ')}.` };
     }
 
@@ -840,6 +883,7 @@ document.getElementById('btnAgregarCarrito').addEventListener('click', () => {
     const mensaje = document.getElementById('msgCompatibilidad');
     mensaje.textContent = 'Producto agregado al carrito.';
     mensaje.className = 'small fw-medium text-success';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCompatibilidad')).hide();
 });
 
 async function cargarSesion() {
@@ -875,7 +919,12 @@ async function cargarProductos(categoria = '') {
 
         const respuesta = await fetch(url);
         const productos = await respuesta.json();
-        productosCatalogo = productos;
+        productosCatalogo = [
+            ...productosCatalogo.filter((productoAnterior) =>
+                !productos.some((producto) => String(producto._id) === String(productoAnterior._id))
+            ),
+            ...productos
+        ];
         
         const contenedor = document.getElementById('contenedor-productos');
         contenedor.innerHTML = ''; 
@@ -955,6 +1004,7 @@ document.getElementById('direccionGuardada').addEventListener('change', (event) 
 function generarCodigoPaynet(total) {
     const codigo = `PAYNET-${Date.now().toString().slice(-10)}-${Math.round(total).toString().padStart(6, '0')}`;
     const visual = document.getElementById('paynetBarcodeVisual');
+    document.getElementById('paynetBarcodeContainer').classList.remove('d-none');
     document.getElementById('paynetBarcodeValue').textContent = codigo;
     visual.replaceChildren();
 
@@ -1007,6 +1057,7 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
         actualizarIndicadorCarrito();
         renderizarCarrito();
         if (metodoPago === 'Paynet') generarCodigoPaynet(data.total);
+        else limpiarCodigoPaynet();
         document.getElementById('formCheckout').reset();
         document.getElementById('metodoPago').value = 'Paynet';
     } catch (error) {

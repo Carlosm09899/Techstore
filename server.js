@@ -76,11 +76,12 @@ function obtenerReglasCompatibilidad(producto) {
 }
 
 function tiposAlmacenamiento(tipo) {
-  return tipo === 'SATA 2.5"' ? ['SATA_25']
-    : tipo === 'SATA M.2' ? ['SATA_M2']
-      : tipo === 'NVMe M.2' ? ['NVME_M2']
-        : tipo === 'SATA 2.5" y NVMe M.2' ? ['SATA_25', 'NVME_M2']
-        : [];
+  const valor = String(tipo || '').toLowerCase();
+  const tipos = [];
+  if (valor.includes('sata') && (valor.includes('2.5') || valor.includes('25'))) tipos.push('SATA_25');
+  if (valor.includes('sata') && valor.includes('m.2')) tipos.push('SATA_M2');
+  if (valor.includes('nvme')) tipos.push('NVME_M2');
+  return tipos;
 }
 
 function validarCompatibilidadProducto(producto, equipo) {
