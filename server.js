@@ -59,11 +59,6 @@ const productoSchema = new mongoose.Schema({
 
 const Producto = mongoose.model('Producto', productoSchema, 'productos');
 
-function normalizarTexto(valor) {
-  if (valor === undefined || valor === null) return '';
-  return String(valor).toLowerCase();
-}
-
 function obtenerReglasCompatibilidad(producto) {
   const reglas = producto.compatibilidad;
   return {
@@ -78,10 +73,17 @@ function obtenerReglasCompatibilidad(producto) {
 function tiposAlmacenamiento(tipo) {
   const valor = String(tipo || '').toLowerCase();
   const tipos = [];
+  if (valor === 'sata_25') tipos.push('SATA_25');
+  if (valor === 'sata_m2') tipos.push('SATA_M2');
+  if (valor === 'nvme_m2') tipos.push('NVME_M2');
   if (valor.includes('sata') && (valor.includes('2.5') || valor.includes('25'))) tipos.push('SATA_25');
   if (valor.includes('sata') && valor.includes('m.2')) tipos.push('SATA_M2');
   if (valor.includes('nvme')) tipos.push('NVME_M2');
   return tipos;
+}
+
+function normalizarTiposReglaAlmacenamiento(tipos) {
+  return tipos.flatMap((tipo) => tiposAlmacenamiento(tipo));
 }
 
 function validarCompatibilidadProducto(producto, equipo) {
@@ -100,7 +102,8 @@ function validarCompatibilidadProducto(producto, equipo) {
       return { ok: false, message: 'La compatibilidad de almacenamiento está incompleta' };
     }
     const tiposEquipo = tiposAlmacenamiento(equipo.almacenamientoTipo);
-    const compatible = reglas.almacenamientoTipos.some((tipo) => tiposEquipo.includes(tipo));
+    const tiposProducto = normalizarTiposReglaAlmacenamiento(reglas.almacenamientoTipos);
+    const compatible = tiposProducto.some((tipo) => tiposEquipo.includes(tipo));
     return compatible
       ? { ok: true, message: `Almacenamiento compatible: ${reglas.almacenamientoTipos.join(', ')}` }
       : { ok: false, message: `Almacenamiento incompatible: requiere ${reglas.almacenamientoTipos.join(', ')}` };
@@ -150,7 +153,7 @@ app.post('/api/orders', async (req, res) => {
     const metodoPagoSeleccionado = String(metodoPago || 'Paynet').trim() || 'Paynet';
     const metodosPagoPermitidos = ['Paynet', 'Tarjeta', 'PayPal'];
 
-    if (!Array.isArray(items) || items.length === 0 || !envio) {
+    if (!Array.isArray(items) || items.length === 0 || !envio || typeof envio !== 'object') {
       return res.status(400).json({ message: 'El carrito y los datos de envío son obligatorios' });
     }
     if (!metodosPagoPermitidos.includes(metodoPagoSeleccionado)) {
@@ -165,7 +168,8 @@ app.post('/api/orders', async (req, res) => {
     const user = await User.findById(userId).select('equipos');
     if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
 
-    if (items.some((item) => !mongoose.Types.ObjectId.isValid(item.productoId)
+    if (items.some((item) => !item || typeof item !== 'object'
+      || !mongoose.Types.ObjectId.isValid(item.productoId)
       || !mongoose.Types.ObjectId.isValid(item.equipoId))) {
       return res.status(400).json({ message: 'El carrito contiene un producto o equipo no válido' });
     }
@@ -278,127 +282,6 @@ app.get('/api/orders', async (req, res) => {
   } catch (error) {
     console.error('Error al obtener las compras:', error.message);
     res.status(500).json({ message: 'No se pudieron obtener tus compras' });
-  }
-});
-
-app.get('/api/paypal/client-id', (req, res) => {
-  if (!process.env.PAYPAL_CLIENT_ID) {
-    return res.status(503).json({ message: 'La integración de PayPal no está configurada' });
-  }
-  res.json({ clientId: process.env.PAYPAL_CLIENT_ID });
-});
-
-async function obtenerTokenPayPal() {
-  if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
-    throw new Error('La integración de PayPal no está configurada');
-  }
-
-  const apiBaseUrl = process.env.PAYPAL_API_BASE_URL || 'https://api-m.sandbox.paypal.com';
-  const credenciales = Buffer
-    .from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`)
-    .toString('base64');
-  const respuesta = await fetch(`${apiBaseUrl}/v1/oauth2/token`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Basic ${credenciales}`,
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: 'grant_type=client_credentials'
-  });
-
-  const data = await respuesta.json();
-  if (!respuesta.ok || !data.access_token) {
-    throw new Error('No se pudo autenticar con PayPal');
-  }
-  return { accessToken: data.access_token, apiBaseUrl };
-}
-
-async function solicitarPayPal(ruta, opciones = {}) {
-  const { accessToken, apiBaseUrl } = await obtenerTokenPayPal();
-  const respuesta = await fetch(`${apiBaseUrl}${ruta}`, {
-    ...opciones,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      ...(opciones.headers || {})
-    }
-  });
-  const data = await respuesta.json();
-  if (!respuesta.ok) {
-    throw new Error(data.message || 'PayPal rechazó la solicitud');
-  }
-  return data;
-}
-
-app.post('/api/paypal/create-order', async (req, res) => {
-  try {
-    const userId = obtenerIdUsuario(req, res);
-    if (!userId) return;
-
-    const { items } = req.body;
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: 'El carrito está vacío' });
-    }
-
-    const ids = items.map((item) => item.productoId);
-    if (items.some((item) => !mongoose.Types.ObjectId.isValid(item.productoId)
-      || !Number.isInteger(Number(item.cantidad)) || Number(item.cantidad) < 1)) {
-      return res.status(400).json({ message: 'El carrito contiene datos no válidos' });
-    }
-
-    const productos = await Producto.find({ _id: { $in: ids }, activo: true }).lean();
-    let total = 0;
-    for (const item of items) {
-      const producto = productos.find((elemento) => String(elemento._id) === String(item.productoId));
-      if (!producto || !Number.isFinite(producto.precio)) {
-        return res.status(409).json({ message: 'Un producto del carrito ya no está disponible' });
-      }
-      const cantidad = Number(item.cantidad);
-      if (producto.stock < cantidad) {
-        return res.status(409).json({ message: `No hay stock suficiente para ${producto.nombre}` });
-      }
-      total += producto.precio * cantidad;
-    }
-
-    const paypalOrder = await solicitarPayPal('/v2/checkout/orders', {
-      method: 'POST',
-      headers: { 'PayPal-Request-Id': `techstore-${userId}-${Date.now()}` },
-      body: JSON.stringify({
-        intent: 'CAPTURE',
-        purchase_units: [{
-          amount: { currency_code: 'MXN', value: total.toFixed(2) }
-        }]
-      })
-    });
-
-    res.json({ orderId: paypalOrder.id });
-  } catch (error) {
-    console.error('Error al crear la orden de PayPal:', error.message);
-    res.status(500).json({ message: error.message || 'No se pudo iniciar el pago con PayPal' });
-  }
-});
-
-app.post('/api/paypal/capture-order', async (req, res) => {
-  try {
-    const userId = obtenerIdUsuario(req, res);
-    if (!userId) return;
-    const { orderId } = req.body;
-    if (!orderId || !/^[A-Z0-9-]+$/i.test(orderId)) {
-      return res.status(400).json({ message: 'La orden de PayPal no es válida' });
-    }
-
-    const paypalOrder = await solicitarPayPal(`/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
-      method: 'POST',
-      body: '{}'
-    });
-    const estado = paypalOrder.status === 'COMPLETED' ? 'COMPLETED' : paypalOrder.status;
-    if (estado !== 'COMPLETED') {
-      return res.status(409).json({ message: 'El pago de PayPal no fue completado' });
-    }
-    res.json({ status: estado, orderId: paypalOrder.id });
-  } catch (error) {
-    console.error('Error al capturar la orden de PayPal:', error.message);
-    res.status(500).json({ message: error.message || 'No se pudo completar el pago con PayPal' });
   }
 });
 

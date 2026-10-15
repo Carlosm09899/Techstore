@@ -25,12 +25,20 @@ function obtenerUsuarioAutenticado(req, res) {
 // REGISTRO
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const name = String(req.body.name || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Nombre, correo y contraseña son obligatorios' });
     }
-    
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: 'El correo electrónico no es válido' });
+    }
+    if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password) || !/[\W_]/.test(password)) {
+      return res.status(400).json({ message: 'La contraseña debe tener 8 caracteres, una letra, un número y un carácter especial' });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'El correo ya está registrado' });
@@ -40,7 +48,7 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
-    await User.create({
+    const user = await User.create({
       name,
       email,
       password: hashedPassword,
@@ -49,10 +57,21 @@ router.post('/register', async (req, res) => {
       verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
-    await sendVerificationEmail({ email, name, token: verificationToken });
+    try {
+      await sendVerificationEmail({
+        email,
+        name,
+        token: verificationToken,
+        baseUrl: `${req.protocol}://${req.get('host')}`
+      });
+    } catch (error) {
+      await user.deleteOne();
+      throw error;
+    }
     res.json({ message: 'Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesión.' });
   } catch (error) {
-    res.status(500).json({ message: 'Error en el servidor al registrar', error: error.message });
+    console.error('Error al registrar el usuario:', error.message);
+    res.status(500).json({ message: 'No se pudo completar el registro. Inténtalo de nuevo más tarde.' });
   }
 });
 
@@ -81,7 +100,8 @@ router.get('/verify-email/:token', async (req, res) => {
 // LOGIN
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const password = String(req.body.password || '');
     const user = await User.findOne({ email });
 
     if (!user) {

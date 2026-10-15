@@ -508,6 +508,10 @@ function obtenerTiposAlmacenamiento(tipo) {
     return tipos;
 }
 
+function normalizarTiposReglaAlmacenamiento(tipos) {
+    return tipos.flatMap((tipo) => obtenerTiposAlmacenamiento(tipo));
+}
+
 function validarCompatibilidad(producto, equipo) {
     const reglas = producto.compatibilidad || {};
     if (reglas.tipoComponente === 'RAM') {
@@ -526,7 +530,8 @@ function validarCompatibilidad(producto, equipo) {
             return { estado: 'incompleta', mensaje: 'Este producto no tiene definido el tipo de almacenamiento requerido.' };
         }
         const tiposEquipo = obtenerTiposAlmacenamiento(equipo.almacenamientoTipo);
-        const compatible = almacenamientoTipos.some((tipo) => tiposEquipo.includes(tipo));
+        const tiposProducto = normalizarTiposReglaAlmacenamiento(almacenamientoTipos);
+        const compatible = tiposProducto.some((tipo) => tiposEquipo.includes(tipo));
         return compatible
             ? { estado: 'compatible', mensaje: `Compatible: tu equipo soporta ${equipo.almacenamientoTipo} y el producto requiere ${almacenamientoTipos.join(', ')}.` }
             : { estado: 'no-compatible', mensaje: `No compatible: tu equipo soporta ${equipo.almacenamientoTipo}, pero el producto requiere ${almacenamientoTipos.join(', ')}.` };
@@ -1073,9 +1078,9 @@ document.getElementById('btnPagarPaynet').addEventListener('click', async () => 
     await confirmarCompraSimulada('Paynet', 'btnPagarPaynet');
 });
 
-document.getElementById('btnPagarStripe').addEventListener('click', async () => {
+document.getElementById('btnPagarTarjeta').addEventListener('click', async () => {
     if (!document.getElementById('formCheckout').reportValidity()) return;
-    await confirmarCompraSimulada('Tarjeta', 'btnPagarStripe');
+    await confirmarCompraSimulada('Tarjeta', 'btnPagarTarjeta');
 });
 
 document.getElementById('btnPagarPayPal').addEventListener('click', async () => {

@@ -25,7 +25,7 @@ const orderSchema = new mongoose.Schema({
   },
   metodoPago: {
     type: String,
-    enum: ['Paynet', 'Tarjeta', 'Transferencia', 'PayPal'],
+    enum: ['Paynet', 'Tarjeta', 'PayPal'],
     default: 'Paynet'
   },
   estado: {

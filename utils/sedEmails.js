@@ -1,5 +1,5 @@
-const sendVerificationEmail = async ({ email, name, token }) => {
-  const verificationUrl = `${process.env.API_URL || 'http://localhost:3000'}/api/auth/verify-email/${token}`;
+const sendVerificationEmail = async ({ email, name, token, baseUrl }) => {
+  const verificationUrl = `${(process.env.API_URL || baseUrl || 'http://localhost:3000').replace(/\/$/, '')}/api/auth/verify-email/${token}`;
   const response = await fetch('https://api.brevo.com/v3/smtp/email', {
     method: 'POST',
     headers: {
