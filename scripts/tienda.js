@@ -373,119 +373,11 @@ function prepararCheckout() {
     document.getElementById('checkoutTotal').textContent = `Total: $${total.toLocaleString()} MXN`;
     document.getElementById('msgCheckout').textContent = '';
     document.getElementById('msgCheckout').className = 'small fw-medium mt-3';
-    inicializarPayPal();
     const selector = document.getElementById('direccionGuardada');
     selector.innerHTML = '<option value="">Capturar una nueva dirección</option>';
     direccionesUsuario.forEach((direccion) => {
         selector.insertAdjacentHTML('beforeend', `<option value="${escaparHTML(direccion._id)}">${escaparHTML(direccion.alias)} - ${escaparHTML(direccion.ciudad)}, ${escaparHTML(direccion.estado)}</option>`);
     });
-}
-
-let paypalInicializado = false;
-let paypalCargando = null;
-
-async function cargarSDKPayPal() {
-    if (window.paypal) return;
-    if (paypalCargando) return paypalCargando;
-
-    paypalCargando = fetch('/api/paypal/client-id', { credentials: 'include' })
-        .then(async (respuesta) => {
-            const data = await respuesta.json();
-            if (!respuesta.ok) throw new Error(data.message || 'PayPal no está configurado');
-            const script = document.createElement('script');
-            script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(data.clientId)}&currency=MXN&intent=capture`;
-            script.async = true;
-            document.head.appendChild(script);
-            await new Promise((resolve, reject) => {
-                script.addEventListener('load', resolve, { once: true });
-                script.addEventListener('error', () => reject(new Error('No se pudo cargar PayPal')), { once: true });
-            });
-        });
-    return paypalCargando;
-}
-
-function confirmarCompraPayPalLocal() {
-    return fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-            items: carrito,
-            envio: obtenerDatosEnvio(),
-            metodoPago: 'PayPal'
-        })
-    }).then(async (respuesta) => {
-        const data = await respuesta.json();
-        if (!respuesta.ok) throw new Error(data.message || 'No se pudo registrar la compra');
-        return data;
-    });
-}
-
-async function inicializarPayPal() {
-    if (paypalInicializado) return;
-    const contenedor = document.getElementById('paypal-button-container');
-    const mensaje = document.getElementById('msgCheckout');
-    try {
-        await cargarSDKPayPal();
-        if (!window.paypal || !contenedor) throw new Error('PayPal no está disponible');
-
-        window.paypal.Buttons({
-            style: { layout: 'vertical', shape: 'pill', label: 'paypal' },
-            onClick: (data, actions) => {
-                if (!document.getElementById('formCheckout').reportValidity()) {
-                    return actions.reject();
-                }
-                return actions.resolve();
-            },
-            createOrder: async () => {
-                const respuesta = await fetch('/api/paypal/create-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ items: carrito })
-                });
-                const data = await respuesta.json();
-                if (!respuesta.ok) throw new Error(data.message || 'No se pudo iniciar PayPal');
-                return data.orderId;
-            },
-            onApprove: async (data) => {
-                mensaje.textContent = 'Confirmando pago de PayPal...';
-                mensaje.className = 'small text-center fw-medium mt-3 text-info';
-                try {
-                    const captura = await fetch('/api/paypal/capture-order', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ orderId: data.orderID })
-                    });
-                    const capturaData = await captura.json();
-                    if (!captura.ok) throw new Error(capturaData.message || 'PayPal no pudo capturar el pago');
-
-                    const orden = await confirmarCompraPayPalLocal();
-                    mensaje.textContent = `${orden.message}. Folio: ${orden.orderId}`;
-                    mensaje.className = 'small text-center fw-medium mt-3 text-success';
-                    carrito = [];
-                    guardarCarrito();
-                    actualizarIndicadorCarrito();
-                    renderizarCarrito();
-                    document.getElementById('formCheckout').reset();
-                    document.getElementById('metodoPago').value = 'Paynet';
-                } catch (error) {
-                    mensaje.textContent = error.message;
-                    mensaje.className = 'small text-center fw-medium mt-3 text-danger';
-                }
-            },
-            onError: (error) => {
-                console.error('Error en PayPal Checkout:', error);
-                mensaje.textContent = 'No se pudo completar el pago con PayPal.';
-                mensaje.className = 'small text-center fw-medium mt-3 text-danger';
-            }
-        }).render(contenedor);
-        paypalInicializado = true;
-    } catch (error) {
-        console.error('Error al inicializar PayPal:', error);
-        contenedor.innerHTML = '<div class="small text-muted text-center">PayPal estará disponible cuando se configure el entorno sandbox.</div>';
-    }
 }
 
 function llenarDatosDireccion(direccion) {
@@ -1073,11 +965,11 @@ function obtenerDatosEnvio() {
     };
 }
 
-async function confirmarCompraPaynet() {
-    const boton = document.getElementById('btnPagarPaynet');
+async function confirmarCompraSimulada(metodoPago, idBoton) {
+    const boton = document.getElementById(idBoton);
     const mensaje = document.getElementById('msgCheckout');
     boton.disabled = true;
-    mensaje.textContent = 'Validando inventario y compatibilidad...';
+    mensaje.textContent = `Validando pago con ${metodoPago}...`;
     mensaje.className = 'small text-center fw-medium mt-3 text-info';
 
     try {
@@ -1088,11 +980,11 @@ async function confirmarCompraPaynet() {
             body: JSON.stringify({
                 items: carrito,
                 envio: obtenerDatosEnvio(),
-                metodoPago: 'Paynet'
+                metodoPago
             })
         });
         const data = await respuesta.json();
-        if (!respuesta.ok) throw new Error(data.message || 'No se pudo confirmar la compra');
+        if (!respuesta.ok) throw new Error(data.message || 'No se pudo simular el pago');
 
         mensaje.textContent = `${data.message}. Folio: ${data.orderId}`;
         mensaje.className = 'small text-center fw-medium mt-3 text-success';
@@ -1100,7 +992,7 @@ async function confirmarCompraPaynet() {
         guardarCarrito();
         actualizarIndicadorCarrito();
         renderizarCarrito();
-        generarCodigoPaynet(data.total);
+        if (metodoPago === 'Paynet') generarCodigoPaynet(data.total);
         document.getElementById('formCheckout').reset();
         document.getElementById('metodoPago').value = 'Paynet';
     } catch (error) {
@@ -1113,44 +1005,17 @@ async function confirmarCompraPaynet() {
 
 document.getElementById('btnPagarPaynet').addEventListener('click', async () => {
     if (!document.getElementById('formCheckout').reportValidity()) return;
-    await confirmarCompraPaynet();
+    await confirmarCompraSimulada('Paynet', 'btnPagarPaynet');
 });
 
-// Manejo del checkout con Stripe
-document.getElementById('formCheckout').addEventListener('submit', async (event) => {
-    event.preventDefault();
-    const boton = document.getElementById('btnPagarStripe');
-    const mensaje = document.getElementById('msgCheckout');
+document.getElementById('btnPagarStripe').addEventListener('click', async () => {
+    if (!document.getElementById('formCheckout').reportValidity()) return;
+    await confirmarCompraSimulada('Tarjeta', 'btnPagarStripe');
+});
 
-    // Cambiamos el estado visual del botón para indicar que está procesando
-    boton.disabled = true;
-    boton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Redirigiendo a pasarela...';
-    mensaje.textContent = 'Conectando de forma segura con Stripe...';
-    mensaje.className = 'small fw-medium mt-3 text-info';
-
-    try {
-        const respuesta = await fetch('/api/create-checkout-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ items: carrito })
-        });
-        
-        const data = await respuesta.json();
-        
-        if (!respuesta.ok) throw new Error(data.error || 'No se pudo iniciar el pago seguro');
-
-        // Redirección inmediata a la pantalla de Stripe
-        if (data.url) {
-            window.location.href = data.url; 
-        }
-    } catch (error) {
-        mensaje.textContent = error.message;
-        mensaje.className = 'small fw-medium mt-3 text-danger';
-        // Restauramos el botón a su estado original si ocurre un error
-        boton.disabled = false;
-        boton.innerHTML = '<i class="bi bi-credit-card fs-5"></i> Pagar con Tarjeta (Stripe)';
-    }
+document.getElementById('btnPagarPayPal').addEventListener('click', async () => {
+    if (!document.getElementById('formCheckout').reportValidity()) return;
+    await confirmarCompraSimulada('PayPal', 'btnPagarPayPal');
 });
 
 

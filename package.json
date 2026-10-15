@@ -19,7 +19,9 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^7.6.0",
-    "mongoose": "^9.9.4",
-    "stripe": "^23.0.0"
+    "mongoose": "^9.9.4"
+  },
+  "overrides": {
+    "proxy-addr": "2.0.8"
   }
 }

@@ -8,7 +8,6 @@ dotenv.config();
 const authRoutes = require('./routes/authRoutes');
 const User = require('./models/user');
 const Order = require('./models/order');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(express.static(__dirname));
@@ -148,9 +147,13 @@ app.post('/api/orders', async (req, res) => {
 
     const { items, envio, metodoPago } = req.body;
     const metodoPagoSeleccionado = String(metodoPago || 'Paynet').trim() || 'Paynet';
+    const metodosPagoPermitidos = ['Paynet', 'Tarjeta', 'PayPal'];
 
     if (!Array.isArray(items) || items.length === 0 || !envio) {
       return res.status(400).json({ message: 'El carrito y los datos de envío son obligatorios' });
+    }
+    if (!metodosPagoPermitidos.includes(metodoPagoSeleccionado)) {
+      return res.status(400).json({ message: 'El método de pago no es válido' });
     }
 
     const camposEnvio = ['nombre', 'telefono', 'direccion', 'ciudad', 'estado', 'codigoPostal'];
@@ -242,6 +245,7 @@ app.post('/api/orders', async (req, res) => {
       items: ordenItems,
       total,
       metodoPago: metodoPagoSeleccionado,
+      estado: metodoPagoSeleccionado === 'Paynet' ? 'Pendiente de pago' : 'Pagada',
       envio: camposEnvio.reduce((datos, campo) => {
         datos[campo] = String(envio[campo]).trim();
         return datos;
@@ -401,50 +405,4 @@ app.post('/api/paypal/capture-order', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
-});
-
-// ==========================================
-// RUTA DE STRIPE CHECKOUT
-// ==========================================
-app.post('/api/create-checkout-session', async (req, res) => {
-  try {
-    // 1. Validar que el usuario tenga sesión iniciada
-    const userId = obtenerIdUsuario(req, res);
-    if (!userId) return;
-
-    const { items } = req.body;
-    if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: 'El carrito está vacío' });
-    }
-
-    // 2. Mapear el carrito de tu tienda al formato "line_items" de Stripe
-    const lineItems = items.map(item => ({
-      price_data: {
-        currency: 'mxn',
-        product_data: {
-          name: item.nombre,
-          description: `Compatibilidad verificada para: ${item.equipoNombre}`,
-        },
-        // Stripe exige el valor en centavos sin decimales
-        unit_amount: Math.round(item.precio * 100), 
-      },
-      quantity: item.cantidad,
-    }));
-
-    // 3. Crear la sesión en los servidores de Stripe
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: lineItems,
-      mode: 'payment',
-      // Redirecciones al terminar o cancelar el proceso
-      success_url: 'http://localhost:3000/success.html',
-      cancel_url: 'http://localhost:3000/index.html',
-    });
-
-    // 4. Devolver la URL generada al frontend
-    res.json({ url: session.url });
-  } catch (error) {
-    console.error('Error al generar pago con Stripe:', error);
-    res.status(500).json({ error: error.message });
-  }
 });
