@@ -1,321 +1,582 @@
-#contenedorMapa {
-    height: 600px;
-    width: 100%;
-    z-index: 1; 
+/* ==========================================================================
+   Apple (España) Design System — E-Shop DIY
+   Reference: DESIGN.md
+   ========================================================================== */
+
+:root {
+    /* Colors */
+    --color-fog-white: #f5f5f7;
+    --color-pure-white: #ffffff;
+    --color-obsidian: #1d1d1f;
+    --color-carbon: #000000;
+    --color-pewter: #707070;
+    --color-slate: #505050;
+    --color-graphite: #474747;
+    --color-iron: #333333;
+    --color-silver: #858585;
+    --color-pale-mist: #d6d6d6;
+    --color-ash-veil: #e2e2e5;
+    --color-iris-blue: #0071e3;
+    --color-sapphire: #0066cc;
+    --color-sky-signal: #2997ff;
+    --color-cornflower: #509be7;
+    --color-ice-wash: #aad0f6;
+
+    /* Typography — Font Families */
+    --font-sf-pro-display: 'SF Pro Display', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-sf-pro-text: 'SF Pro Text', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+    /* Typography — Scale */
+    --text-caption: 12px;
+    --leading-caption: 1.33;
+    --tracking-caption: -0.12px;
+    --text-body: 17px;
+    --leading-body: 1.47;
+    --tracking-body: -0.37px;
+    --text-subheading: 21px;
+    --leading-subheading: 1.19;
+    --tracking-subheading: 0.23px;
+    --text-heading-sm: 26px;
+    --leading-heading-sm: 1.47;
+    --tracking-heading-sm: -0.39px;
+    --text-heading: 34px;
+    --leading-heading: 1.47;
+    --tracking-heading: -0.37px;
+    --text-heading-lg: 40px;
+    --leading-heading-lg: 1.1;
+    --tracking-heading-lg: 0px;
+    --text-display: 56px;
+    --leading-display: 1.07;
+    --tracking-display: -0.28px;
+
+    /* Radii */
+    --radius-full: 980px;
+    --radius-pill: 980px;
+    --radius-card: 18px;
+    --radius-modal: 22px;
+    --radius-control: 12px;
 }
 
-.leaflet-routing-container {
-    max-height: 400px;
-    overflow-y: auto;
-    background-color: white;
-    padding: 10px;
-    border-radius: 5px;
+/* --------------------------------------------------------------------------
+   Global Reset & Base
+   -------------------------------------------------------------------------- */
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-#modalNuevoEquipo .modal-content {
-    max-height: calc(100vh - 2rem);
-}
-
-#modalNuevoEquipo form {
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-#modalNuevoEquipo .modal-body {
-    overflow-y: auto;
-}
-
-#modalNuevoEquipo .modal-footer {
-    flex-shrink: 0;
-    background-color: white;
-    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
-}
-
-#modalCheckout .modal-content {
-    max-height: calc(100vh - 2rem);
-}
-
-#modalCheckout form {
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-}
-
-#modalCheckout .modal-body {
-    min-height: 0;
-    overflow-y: auto;
-}
-
-#modalCheckout .modal-footer {
-    flex-shrink: 0;
-}
-
-#modalCheckout .modal-dialog {
-    max-width: 780px;
-}
-
-#modalCheckout .modal-content {
-    background: #f8fafc;
-    border: 1px solid #e7edf5 !important;
-}
-
-#modalCheckout .modal-header {
-    background: linear-gradient(135deg, #1769e0, #0b4dbb) !important;
-    border-bottom: 0;
-    padding: 1.25rem 1.5rem;
-}
-
-#modalCheckout .modal-body {
-    padding: 1.5rem !important;
-}
-
-#modalCheckout .modal-body > #resumenCheckout {
-    background: #fff !important;
-    border: 1px solid #e7edf5;
-    max-height: 128px;
-    overflow-y: auto;
-    margin-bottom: 1.25rem !important;
-}
-
-#modalCheckout .form-label {
-    color: #445168;
-}
-
-#modalCheckout .form-control,
-#modalCheckout .form-select {
-    min-height: 43px;
-    border-color: #dce4ef;
-    background-color: #fff;
-}
-
-#modalCheckout .form-control:focus,
-#modalCheckout .form-select:focus {
-    border-color: #1769e0;
-    box-shadow: 0 0 0 0.2rem rgba(23, 105, 224, 0.12);
-}
-
-.checkout-payment {
-    border-top: 1px solid #e5ebf3;
-    padding-top: 1.25rem;
-}
-
-.checkout-section-title {
-    display: flex;
-    align-items: center;
-    gap: .7rem;
-    margin-bottom: 1rem;
-}
-
-.checkout-section-title > span {
-    display: grid;
-    place-items: center;
-    width: 28px;
-    height: 28px;
-    flex: 0 0 28px;
-    border-radius: 50%;
-    color: #1769e0;
-    background: #e7f0ff;
-    font-size: .8rem;
-    font-weight: 800;
-}
-
-.checkout-section-title h6 {
+body {
+    background-color: var(--color-fog-white) !important;
+    color: var(--color-obsidian);
+    font-family: var(--font-sf-pro-text);
+    font-size: var(--text-body);
+    line-height: var(--leading-body);
+    letter-spacing: var(--tracking-body);
     margin: 0;
-    color: #1d2939;
-    font-weight: 750;
+    padding: 0;
 }
 
-.checkout-section-title small {
-    color: #8290a5;
+h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display-5 {
+    font-family: var(--font-sf-pro-display);
+    color: var(--color-obsidian);
+    font-weight: 600;
+    letter-spacing: -0.015em;
 }
 
-.payment-options {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: .75rem;
+a {
+    color: var(--color-sapphire);
+    text-decoration: none;
+    transition: color 0.15s ease;
 }
 
-.payment-option {
-    position: relative;
-    display: flex;
+a:hover {
+    color: var(--color-iris-blue);
+    text-decoration: underline;
+}
+
+/* --------------------------------------------------------------------------
+   Apple Global Navigation Bar (Frosted Glass)
+   -------------------------------------------------------------------------- */
+.navbar.apple-navbar,
+nav.navbar {
+    height: 48px;
+    background-color: rgba(255, 255, 255, 0.82) !important;
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    z-index: 1030;
+}
+
+.navbar .container {
+    min-height: 48px;
+}
+
+.navbar-brand {
+    font-family: var(--font-sf-pro-display);
+    font-size: 17px !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.22px;
+    color: var(--color-obsidian) !important;
+    display: inline-flex;
     align-items: center;
-    gap: .65rem;
-    min-height: 76px;
-    padding: .75rem .8rem;
-    border: 1px solid #dce4ef;
-    border-radius: 14px;
-    background: #fff;
-    color: #1d2939;
-    text-align: left;
-    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    padding: 0;
 }
 
-.payment-option:hover,
-.payment-option:focus-visible {
-    border-color: #1769e0;
-    box-shadow: 0 8px 18px rgba(31, 75, 135, .12);
-    transform: translateY(-2px);
-}
-
-.payment-option > span:nth-child(2) {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: .15rem;
-}
-
-.payment-option strong {
-    font-size: .92rem;
-}
-
-.payment-option small {
-    color: #8290a5;
-    font-size: .7rem;
-    line-height: 1.2;
-}
-
-.payment-icon {
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    flex: 0 0 38px;
-    border-radius: 11px;
+.navbar-brand i {
+    color: var(--color-iris-blue) !important;
     font-size: 1.15rem;
 }
 
-.paynet-icon {
-    color: #1769e0;
-    background: #e7f0ff;
+.navbar-nav .nav-link {
+    font-size: 13px !important;
+    font-weight: 400 !important;
+    color: var(--color-obsidian) !important;
+    opacity: 0.88;
+    letter-spacing: -0.1px;
+    padding: 6px 12px !important;
+    transition: opacity 0.15s ease, color 0.15s ease;
 }
 
-.card-icon {
-    color: #344054;
-    background: #eef2f6;
+.navbar-nav .nav-link:hover {
+    opacity: 1;
+    color: var(--color-sapphire) !important;
+    text-decoration: none;
 }
 
-.paypal-icon {
-    color: #0874c9;
-    background: #e5f4ff;
+.navbar-nav .nav-link.active {
+    opacity: 1;
+    font-weight: 600 !important;
+    color: var(--color-obsidian) !important;
 }
 
-.payment-arrow {
-    margin-left: auto;
-    color: #a4afbf;
-    font-size: .8rem;
+.nav-action-btn,
+.navbar button.btn-link,
+.navbar a.text-dark {
+    color: var(--color-iron) !important;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.paynet-code {
-    margin-top: .75rem;
-    padding: .9rem;
-    border: 1px solid #cfe0f8;
-    border-radius: 14px;
-    background: #f1f6ff;
+.nav-action-btn:hover,
+.navbar button.btn-link:hover,
+.navbar a.text-dark:hover {
+    color: var(--color-iris-blue) !important;
+    background-color: rgba(0, 0, 0, 0.04);
 }
 
-#modalCheckout .modal-footer {
-    justify-content: flex-end;
-    padding: 1rem 1.5rem 1.25rem;
-    border-top: 1px solid #e5ebf3 !important;
-    background: #fff !important;
+#carritoCantidad {
+    font-size: 10px;
+    padding: 2px 5px;
+    background-color: var(--color-iris-blue) !important;
+    border: 2px solid var(--color-pure-white);
 }
 
-#checkoutTotal {
-    color: #172b4d !important;
-    font-size: 1.35rem !important;
+/* --------------------------------------------------------------------------
+   Global Promotional Message Bar
+   -------------------------------------------------------------------------- */
+.apple-promo-ribbon {
+    background-color: var(--color-pure-white);
+    border-bottom: 1px solid var(--color-pale-mist);
+    font-size: var(--text-caption);
+    line-height: var(--leading-caption);
+    color: var(--color-obsidian);
+    padding: 8px 16px;
+    text-align: center;
 }
 
-.checkout-terms {
-    margin-top: 1.25rem;
-    padding: .9rem 1rem;
-    border: 1px solid #dce4ef;
-    border-radius: 12px;
-    background: #fff;
+.apple-promo-ribbon a {
+    color: var(--color-sapphire);
+    font-weight: 500;
+    margin-left: 4px;
 }
 
-.checkout-terms .form-check {
-    display: flex;
-    align-items: flex-start;
-    gap: .5rem;
-}
-
-.checkout-terms .form-check-input {
-    float: none;
-    flex: 0 0 auto;
-    margin: .15rem 0 0;
-    cursor: pointer;
-}
-
-.checkout-terms .form-check-input:checked {
-    background-color: #1769e0;
-    border-color: #1769e0;
-}
-
-.terms-link {
-    padding: 0;
-    border: 0;
-    background: transparent;
-    color: #1769e0;
-    font: inherit;
-    font-weight: 700;
+.apple-promo-ribbon a:hover {
+    color: var(--color-iris-blue);
     text-decoration: underline;
-    cursor: pointer;
 }
 
-.terms-link:hover {
-    color: #0b4dbb;
+/* --------------------------------------------------------------------------
+   Buttons & CTAs (Apple Pill Standard: border-radius: 980px)
+   -------------------------------------------------------------------------- */
+.btn {
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: -0.22px;
+    transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+    box-shadow: none !important;
 }
 
-.terms-content {
-    color: #475467;
-    font-size: .94rem;
-    line-height: 1.65;
+/* Filled Primary Action Button */
+.btn-primary,
+.btn-apple-primary {
+    background-color: var(--color-iris-blue) !important;
+    border: 1px solid var(--color-iris-blue) !important;
+    color: var(--color-pure-white) !important;
+    padding: 11px 22px;
 }
 
-.terms-content h6 {
-    margin-top: 1.4rem;
-    margin-bottom: .55rem;
-    color: #172b4d;
-    font-weight: 750;
+.btn-primary:hover,
+.btn-apple-primary:hover {
+    background-color: #0077ed !important;
+    border-color: #0077ed !important;
+    color: var(--color-pure-white) !important;
+    transform: translateY(-1px);
 }
 
-.terms-content h6:first-of-type {
-    margin-top: 0;
+.btn-primary:active,
+.btn-apple-primary:active {
+    background-color: #0062c4 !important;
+    transform: translateY(0);
 }
 
-.terms-content li {
-    margin-bottom: .4rem;
+/* Outlined Secondary Button */
+.btn-outline-primary,
+.btn-apple-outline {
+    background-color: transparent !important;
+    border: 1px solid var(--color-sapphire) !important;
+    color: var(--color-sapphire) !important;
+    padding: 11px 22px;
 }
 
-.terms-notice {
-    margin-top: 1.5rem;
-    padding: .8rem 1rem;
-    border-radius: 10px;
-    color: #1759a6;
-    background: #edf5ff;
-    font-size: .86rem;
+.btn-outline-primary:hover,
+.btn-apple-outline:hover {
+    background-color: rgba(0, 102, 204, 0.06) !important;
+    border-color: var(--color-iris-blue) !important;
+    color: var(--color-iris-blue) !important;
+    transform: translateY(-1px);
 }
 
-@media (max-width: 575.98px) {
-    #modalCheckout .modal-body {
-        padding: 1.1rem !important;
-    }
-
-    .payment-options {
-        grid-template-columns: 1fr;
-    }
-
-    .payment-option {
-        min-height: 64px;
-    }
+/* Ghost Outline Button on Dark Surfaces */
+.btn-ghost-dark {
+    background-color: transparent !important;
+    border: 1px solid var(--color-sky-signal) !important;
+    color: var(--color-sky-signal) !important;
+    padding: 10px 22px;
 }
 
+.btn-ghost-dark:hover {
+    background-color: rgba(41, 151, 255, 0.1) !important;
+    color: #5bb3ff !important;
+}
+
+/* White Pill Button on Dark Surfaces */
+.btn-apple-white {
+    background-color: var(--color-pure-white) !important;
+    border: 1px solid var(--color-pure-white) !important;
+    color: var(--color-obsidian) !important;
+    padding: 11px 24px;
+    font-weight: 500;
+}
+
+.btn-apple-white:hover {
+    background-color: #f0f0f2 !important;
+    color: var(--color-obsidian) !important;
+    transform: translateY(-1px);
+}
+
+/* Dark Pill Button */
+.btn-dark {
+    background-color: var(--color-obsidian) !important;
+    border: 1px solid var(--color-obsidian) !important;
+    color: var(--color-pure-white) !important;
+    padding: 11px 22px;
+}
+
+.btn-dark:hover {
+    background-color: #333336 !important;
+    border-color: #333336 !important;
+    color: var(--color-pure-white) !important;
+}
+
+.btn-outline-dark {
+    border: 1px solid var(--color-pale-mist) !important;
+    background-color: var(--color-pure-white) !important;
+    color: var(--color-obsidian) !important;
+    padding: 8px 18px;
+}
+
+.btn-outline-dark:hover,
+.btn-outline-dark.active {
+    background-color: var(--color-obsidian) !important;
+    border-color: var(--color-obsidian) !important;
+    color: var(--color-pure-white) !important;
+}
+
+.btn-light {
+    background-color: var(--color-pure-white) !important;
+    border: 1px solid var(--color-pale-mist) !important;
+    color: var(--color-obsidian) !important;
+}
+
+.btn-light:hover {
+    background-color: var(--color-fog-white) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Hero Carousel (Apple Gallery Showcase)
+   -------------------------------------------------------------------------- */
+#heroCarousel {
+    margin-bottom: 0 !important;
+}
+
+.apple-hero-slide {
+    min-height: 72vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 70px 20px;
+    text-align: center;
+}
+
+.apple-hero-slide-dark {
+    background: radial-gradient(circle at 50% 20%, #1e1e24 0%, #000000 70%) !important;
+    color: var(--color-pure-white);
+}
+
+.apple-hero-slide-wash {
+    background: linear-gradient(180deg, #fbfbfd 0%, var(--color-ice-wash) 100%) !important;
+    color: var(--color-obsidian);
+}
+
+.apple-tag {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.apple-tag-dark {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--color-sky-signal);
+    border: 1px solid rgba(41, 151, 255, 0.3);
+}
+
+.apple-tag-light {
+    background-color: rgba(0, 113, 227, 0.1);
+    color: var(--color-iris-blue);
+    border: 1px solid rgba(0, 113, 227, 0.2);
+}
+
+.apple-hero-title {
+    font-size: clamp(34px, 5.5vw, 56px);
+    font-weight: 600;
+    line-height: var(--leading-display);
+    letter-spacing: var(--tracking-display);
+    margin-bottom: 14px;
+    max-width: 820px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.apple-hero-subhead {
+    font-size: clamp(17px, 2.2vw, 21px);
+    font-weight: 400;
+    line-height: var(--leading-subheading);
+    letter-spacing: var(--tracking-subheading);
+    max-width: 680px;
+    margin: 0 auto 28px;
+    opacity: 0.85;
+}
+
+.apple-button-pair {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Indicators */
+#heroCarousel .carousel-indicators [data-bs-target] {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.4);
+    border: none;
+    margin: 0 4px;
+    transition: all 0.2s ease;
+}
+
+#heroCarousel .carousel-indicators .active {
+    width: 24px;
+    border-radius: 4px;
+    background-color: var(--color-pure-white);
+}
+
+/* --------------------------------------------------------------------------
+   Category Navigation Menu (Pills Segmented Bar)
+   -------------------------------------------------------------------------- */
+#catalogo {
+    padding-top: 60px;
+    padding-bottom: 20px;
+}
+
+.section-headline {
+    font-size: clamp(28px, 4vw, var(--text-heading-lg));
+    font-weight: 600;
+    line-height: var(--leading-heading-lg);
+    letter-spacing: var(--tracking-heading-lg);
+    color: var(--color-obsidian);
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.section-subhead {
+    font-size: var(--text-body);
+    color: var(--color-pewter);
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.category-pill-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 6px;
+    border-radius: var(--radius-pill);
+    max-width: fit-content;
+    margin: 0 auto;
+}
+
+.filtro-categoria {
+    border-radius: var(--radius-pill) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    padding: 8px 18px !important;
+    background: transparent !important;
+    color: var(--color-slate) !important;
+    border: none !important;
+    transition: all 0.2s ease;
+}
+
+.filtro-categoria:hover {
+    color: var(--color-obsidian) !important;
+    background: rgba(255, 255, 255, 0.6) !important;
+}
+
+.filtro-categoria.active {
+    background: var(--color-pure-white) !important;
+    color: var(--color-obsidian) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Catalog Grid & Product Pedestals (Museum Gallery Style)
+   -------------------------------------------------------------------------- */
+.product-section-wrapper {
+    padding: 40px 0 80px;
+}
+
+.card.apple-product-card,
+#contenedor-productos .card {
+    background-color: var(--color-pure-white) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-radius: var(--radius-card) !important;
+    padding: 24px !important;
+    text-align: center;
+    transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: none !important;
+}
+
+.card.apple-product-card:hover,
+#contenedor-productos .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Floating Hardware Pedestal */
+.apple-pedestal,
+#contenedor-productos .card > div:nth-child(2) {
+    background-color: var(--color-fog-white) !important;
+    border-radius: 14px !important;
+    height: 180px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px !important;
+    transition: transform 0.25s ease;
+}
+
+#contenedor-productos .card:hover .apple-pedestal,
+#contenedor-productos .card:hover > div:nth-child(2) {
+    transform: scale(1.02);
+}
+
+#contenedor-productos .card .card-title {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--color-obsidian);
+    margin-bottom: 6px;
+    letter-spacing: -0.015em;
+}
+
+#contenedor-productos .card .card-text {
+    font-size: 14px;
+    color: var(--color-pewter);
+    line-height: 1.4;
+    min-height: 38px;
+    margin-bottom: 14px;
+}
+
+/* Compatibility Badges */
+.badge {
+    border-radius: var(--radius-pill) !important;
+    font-weight: 500 !important;
+    padding: 5px 12px !important;
+    font-size: 12px !important;
+    letter-spacing: -0.1px;
+}
+
+.badge.bg-success,
+.badge-zero-risk {
+    background-color: rgba(52, 199, 89, 0.12) !important;
+    color: #1a7f37 !important;
+    border: 1px solid rgba(52, 199, 89, 0.2);
+}
+
+.badge.bg-info-subtle {
+    background-color: rgba(0, 113, 227, 0.08) !important;
+    color: var(--color-iris-blue) !important;
+    border: 1px solid rgba(0, 113, 227, 0.15);
+}
+
+.badge.bg-warning-subtle {
+    background-color: rgba(255, 149, 0, 0.1) !important;
+    color: #b25000 !important;
+    border: 1px solid rgba(255, 149, 0, 0.2);
+}
+
+.badge.bg-success-subtle {
+    background-color: rgba(52, 199, 89, 0.1) !important;
+    color: #1a7f37 !important;
+    border: 1px solid rgba(52, 199, 89, 0.2);
+}
+
+/* Rating */
 .product-rating {
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 24px;
+    margin-bottom: 12px;
 }
 
 .product-stars,
@@ -323,75 +584,598 @@
     color: #f5a623;
     letter-spacing: 1px;
     white-space: nowrap;
-}
-
-.product-stars {
-    font-size: .9rem;
-}
-
-.review-stars {
-    font-size: .8rem;
+    font-size: 0.85rem;
 }
 
 .review-average {
-    margin-left: .4rem;
-    color: #667085;
-    font-size: .78rem;
-    font-weight: 700;
+    margin-left: 5px;
+    color: var(--color-pewter);
+    font-size: 12px;
+    font-weight: 600;
 }
 
 .btn-ver-resenas {
-    color: #1769e0;
-    text-decoration: none;
+    color: var(--color-sapphire) !important;
+    font-size: 12px !important;
+    text-decoration: none !important;
+    margin-left: 6px;
 }
 
 .btn-ver-resenas:hover {
-    color: #0b4dbb;
+    color: var(--color-iris-blue) !important;
+    text-decoration: underline !important;
+}
+
+/* Price & Button in Card */
+#contenedor-productos .card .fs-5 {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    color: var(--color-obsidian) !important;
+    letter-spacing: -0.2px;
+    margin-bottom: 4px;
+}
+
+#contenedor-productos .btn-validar-compatibilidad {
+    background-color: var(--color-iris-blue) !important;
+    border: 1px solid var(--color-iris-blue) !important;
+    color: var(--color-pure-white) !important;
+    border-radius: var(--radius-pill) !important;
+    font-weight: 500;
+    padding: 10px 18px !important;
+    font-size: 13px !important;
+}
+
+#contenedor-productos .btn-validar-compatibilidad:hover {
+    background-color: #0077ed !important;
+    border-color: #0077ed !important;
+}
+
+#contenedor-productos .btn-validar-compatibilidad:disabled {
+    background-color: var(--color-ash-veil) !important;
+    border-color: var(--color-ash-veil) !important;
+    color: var(--color-silver) !important;
+    cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   Location / Map Section (Apple Maps Style)
+   -------------------------------------------------------------------------- */
+#ubicacion {
+    padding-top: 40px;
+    padding-bottom: 60px;
+}
+
+.apple-map-card {
+    background-color: var(--color-pure-white);
+    border: 1px solid var(--color-pale-mist);
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.apple-map-header {
+    background-color: var(--color-pure-white);
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--color-pale-mist);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.apple-map-header h5 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--color-obsidian);
+}
+
+.apple-map-header small {
+    color: var(--color-pewter);
+    font-size: 13px;
+}
+
+#contenedorMapa {
+    height: 520px;
+    width: 100%;
+    z-index: 1;
+}
+
+.leaflet-routing-container {
+    max-height: 380px;
+    overflow-y: auto;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-pale-mist) !important;
+    border-radius: 14px !important;
+    padding: 14px !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+    font-family: var(--font-sf-pro-text) !important;
+    font-size: 13px !important;
+}
+
+/* --------------------------------------------------------------------------
+   Trade-In Banner (Plan de Canje — Apple Dark Band)
+   -------------------------------------------------------------------------- */
+#plan-canje {
+    padding-top: 20px;
+    padding-bottom: 60px;
+}
+
+.apple-dark-band {
+    background: radial-gradient(circle at 50% 30%, #1c1c1e 0%, #000000 80%) !important;
+    color: var(--color-pure-white) !important;
+    border-radius: 24px !important;
+    padding: 70px 30px !important;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.apple-dark-band .apple-tag {
+    background-color: rgba(41, 151, 255, 0.15);
+    color: var(--color-sky-signal);
+    border: 1px solid rgba(41, 151, 255, 0.3);
+}
+
+.apple-dark-band h2 {
+    color: var(--color-pure-white) !important;
+    font-size: clamp(30px, 4.5vw, 44px);
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.apple-dark-band p.lead {
+    color: #a1a1a6 !important;
+    font-size: 19px;
+    max-width: 620px;
+    margin: 0 auto 28px;
+    font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   Footer (Dense Apple Directory Grid)
+   -------------------------------------------------------------------------- */
+footer {
+    background-color: var(--color-fog-white) !important;
+    border-top: 1px solid var(--color-pale-mist) !important;
+    font-size: var(--text-caption) !important;
+    line-height: var(--leading-caption);
+    color: var(--color-pewter);
+    padding: 40px 0 30px;
+}
+
+footer h5,
+footer h6 {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--color-obsidian) !important;
+    margin-bottom: 10px;
+    letter-spacing: -0.1px;
+}
+
+footer p {
+    color: var(--color-pewter);
+    font-size: 12px;
+    line-height: 1.45;
+}
+
+footer ul li {
+    margin-bottom: 6px;
+}
+
+footer a,
+footer a.text-muted {
+    color: var(--color-slate) !important;
+    font-size: 12px;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+footer a:hover {
+    color: var(--color-iris-blue) !important;
     text-decoration: underline;
 }
 
-.review-item {
-    padding: 1rem 0;
-    border-bottom: 1px solid #e8edf3;
+footer hr {
+    border-color: var(--color-pale-mist) !important;
+    opacity: 0.8;
+    margin: 24px 0 16px;
 }
 
-.review-item:first-child {
-    padding-top: 0;
+/* --------------------------------------------------------------------------
+   Floating WhatsApp Button (Apple Sleek Floating Action)
+   -------------------------------------------------------------------------- */
+.whatsapp-float-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: var(--radius-pill);
+    background-color: #25d366;
+    color: #ffffff !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(37, 211, 102, 0.35);
+    z-index: 1050;
+    transition: transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.2s ease;
 }
 
-.review-item:last-child {
-    border-bottom: 0;
+.whatsapp-float-btn:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 20px rgba(37, 211, 102, 0.45);
+    color: #ffffff !important;
+    text-decoration: none;
 }
 
-.review-form {
-    padding: 1.1rem;
-    border: 1px solid #d7e5fb;
-    border-radius: 16px;
-    background: #f4f8ff;
+/* --------------------------------------------------------------------------
+   Modals (Apple Minimalist Frosted Surfaces)
+   -------------------------------------------------------------------------- */
+.modal-backdrop.show {
+    opacity: 0.45;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
-.review-form-title {
-    color: #1d2939;
+.modal-content {
+    border-radius: var(--radius-modal) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    background-color: var(--color-pure-white) !important;
+    box-shadow: 0 20px 48px rgba(0, 0, 0, 0.12) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--color-pale-mist) !important;
+    background-color: var(--color-pure-white) !important;
+    color: var(--color-obsidian) !important;
+    padding: 18px 24px !important;
+}
+
+.modal-header .modal-title {
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    color: var(--color-obsidian) !important;
+}
+
+.modal-header .modal-title i {
+    color: var(--color-iris-blue);
+}
+
+.modal-header .btn-close {
+    background-color: var(--color-ash-veil);
+    border-radius: 50%;
+    padding: 7px;
+    opacity: 0.7;
+    transition: opacity 0.15s ease;
+}
+
+.modal-header .btn-close:hover {
+    opacity: 1;
+}
+
+.modal-body {
+    padding: 24px !important;
+    font-size: 15px;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--color-pale-mist) !important;
+    padding: 16px 24px !important;
+    background-color: var(--color-fog-white) !important;
+}
+
+/* Apple Segmented Control in Tabs */
+.nav-pills#pills-tab {
+    background-color: var(--color-ash-veil);
+    padding: 4px;
+    border-radius: var(--radius-pill);
+    gap: 4px;
+}
+
+.nav-pills#pills-tab .nav-link {
+    border-radius: var(--radius-pill) !important;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-slate);
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+}
+
+.nav-pills#pills-tab .nav-link.active {
+    background-color: var(--color-pure-white) !important;
+    color: var(--color-obsidian) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Form Controls */
+.form-label {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--color-obsidian) !important;
+    margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+    border: 1px solid #d2d2d7 !important;
+    border-radius: var(--radius-control) !important;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--color-obsidian);
+    background-color: var(--color-pure-white);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--color-iris-blue) !important;
+    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2) !important;
+    outline: none;
+}
+
+/* Checkout Specific Styles */
+#modalCheckout .modal-dialog {
+    max-width: 760px;
+}
+
+#modalCheckout .modal-content {
+    background-color: var(--color-fog-white) !important;
+}
+
+#modalCheckout .modal-header {
+    background: var(--color-pure-white) !important;
+}
+
+#modalCheckout .modal-body {
+    padding: 20px 24px !important;
+}
+
+#resumenCheckout {
+    background: var(--color-pure-white) !important;
+    border: 1px solid var(--color-pale-mist);
+    border-radius: 14px;
+    padding: 14px;
+    max-height: 130px;
+    overflow-y: auto;
+}
+
+.checkout-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.checkout-section-title > span {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: var(--color-iris-blue);
+    color: var(--color-pure-white);
+    font-size: 12px;
     font-weight: 700;
 }
 
-.review-stars-input {
+.checkout-section-title h6 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-obsidian);
+}
+
+.checkout-section-title small {
+    color: var(--color-pewter);
+    font-size: 12px;
+}
+
+.payment-options {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.payment-option {
     display: flex;
-    gap: .3rem;
+    align-items: center;
+    gap: 10px;
+    min-height: 72px;
+    padding: 10px 14px;
+    border: 1px solid var(--color-pale-mist);
+    border-radius: 14px;
+    background: var(--color-pure-white);
+    color: var(--color-obsidian);
+    text-align: left;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+}
+
+.payment-option:hover {
+    border-color: var(--color-iris-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.08);
+}
+
+.payment-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.paynet-icon {
+    color: var(--color-iris-blue);
+    background: rgba(0, 113, 227, 0.1);
+}
+
+.card-icon {
+    color: var(--color-obsidian);
+    background: var(--color-ash-veil);
+}
+
+.paypal-icon {
+    color: #0070ba;
+    background: rgba(0, 112, 186, 0.1);
+}
+
+.paynet-code {
+    margin-top: 14px;
+    padding: 16px;
+    border: 1px solid var(--color-pale-mist);
+    border-radius: 14px;
+    background: var(--color-pure-white);
+}
+
+.checkout-terms {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border: 1px solid var(--color-pale-mist);
+    border-radius: 12px;
+    background: var(--color-pure-white);
+}
+
+.terms-link {
+    background: transparent;
+    border: 0;
+    color: var(--color-sapphire);
+    font-weight: 500;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+}
+
+.terms-link:hover {
+    color: var(--color-iris-blue);
+}
+
+.terms-content {
+    color: var(--color-slate);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.terms-content h6 {
+    color: var(--color-obsidian);
+    font-weight: 600;
+    margin-top: 16px;
+    margin-bottom: 6px;
+}
+
+.terms-notice {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(0, 113, 227, 0.08);
+    color: var(--color-iris-blue);
+    font-size: 13px;
+}
+
+/* Reviews Modal */
+.review-item {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--color-pale-mist);
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-form {
+    padding: 18px;
+    border: 1px solid var(--color-pale-mist);
+    border-radius: 16px;
+    background: var(--color-fog-white);
+}
+
+.review-form-title {
+    font-weight: 600;
+    color: var(--color-obsidian);
+    font-size: 15px;
 }
 
 .review-star {
-    padding: 0;
+    padding: 0 3px;
     border: 0;
     background: transparent;
-    color: #b8c1cf;
-    font-size: 1.7rem;
-    line-height: 1;
-    transition: color .15s ease, transform .15s ease;
+    color: var(--color-silver);
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
 }
 
 .review-star:hover,
 .review-star.active {
     color: #f5a623;
-    transform: translateY(-1px);
+    transform: scale(1.1);
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+    border-radius: 14px !important;
+    border: 1px solid var(--color-pale-mist) !important;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08) !important;
+    padding: 6px !important;
+}
+
+.dropdown-item {
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    padding: 7px 12px !important;
+    color: var(--color-obsidian) !important;
+    transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--color-fog-white) !important;
+    color: var(--color-iris-blue) !important;
+}
+
+/* Responsive Queries */
+@media (max-width: 768px) {
+    .apple-hero-slide {
+        min-height: 55vh;
+        padding: 50px 16px;
+    }
+    
+    .payment-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .apple-button-pair {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .apple-button-pair .btn {
+        width: 100%;
+    }
+}
+
+
+/* --------------------------------------------------------------------------
+   Lists, Sub-cards & Pedestal Glyphs
+   -------------------------------------------------------------------------- */
+#listaEquipos .card,
+#listaDirecciones .card,
+#listaCompras .card,
+#listaCarrito > div {
+    background-color: var(--color-pure-white) !important;
+    border: 1px solid var(--color-pale-mist) !important;
+    border-radius: var(--radius-card) !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease;
+}
+
+#listaEquipos .card:hover,
+#listaDirecciones .card:hover,
+#listaCompras .card:hover {
+    border-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+#contenedor-productos .card > div:nth-child(2) i {
+    color: var(--color-slate) !important;
 }

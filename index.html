@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Catálogo de Componentes</title>
+    <title>E-Shop DIY | Catálogo de Componentes</title>
     
     <!-- Dependencias CSS Externas -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,34 +11,34 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     
-    <!-- CSS Propio -->
+    <!-- Apple Design System CSS (DESIGN.md) -->
     <link rel="stylesheet" href="css/style.css" />
 </head>
-<body class="bg-light">
+<body>
 
-    <!-- 1. NAVBAR -->
-     <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top shadow-sm py-3">
+    <!-- 1. NAVBAR (Apple Frosted Glass) -->
+    <nav class="navbar navbar-expand-lg apple-navbar sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold fs-3" href="#">
-                <i class="bi bi-tools text-primary me-2"></i>E-Shop DIY
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-tools me-2"></i>E-Shop DIY
             </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir navegación">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav gap-3 fw-medium">
-                    <li class="nav-item"><a class="nav-link" href="#">Inicio</a></li>
+                <ul class="navbar-nav gap-2">
+                    <li class="nav-item"><a class="nav-link active" href="#">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link" href="#catalogo">Catálogo</a></li>
                     <li class="nav-item"><a class="nav-link" href="nosotros.html">Quiénes Somos</a></li>
                     <li class="nav-item"><a class="nav-link" href="#plan-canje">Plan de Canje</a></li>
                     <li class="nav-item"><a class="nav-link" href="#ubicacion">Ubicación</a></li>
-                    <li class="nav-item"><a class="nav-link text-primary fw-bold" href="#" data-bs-toggle="modal" data-bs-target="#modalContacto">Contacto</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#modalContacto">Contacto</a></li>
                 </ul>
             </div>
-            <div class="d-flex gap-3 fs-5 align-items-center">
-                <a href="#" class="text-dark"><i class="bi bi-search"></i></a>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="#catalogo" class="nav-action-btn" title="Buscar en catálogo"><i class="bi bi-search"></i></a>
                 <div class="dropdown">
-                    <button id="cuentaUsuario" type="button" class="btn btn-link text-dark text-decoration-none p-0" data-bs-toggle="modal" data-bs-target="#modalAuth" title="Mi Cuenta">
+                    <button id="cuentaUsuario" type="button" class="btn btn-link text-decoration-none p-0 nav-action-btn" data-bs-toggle="modal" data-bs-target="#modalAuth" title="Mi Cuenta">
                         <i class="bi bi-person"></i>
                     </button>
                     <ul id="menuCuenta" class="dropdown-menu dropdown-menu-end">
@@ -47,133 +47,168 @@
                         <li><button id="misEquipos" type="button" class="dropdown-item"><i class="bi bi-pc-display me-2"></i>Mis equipos</button></li>
                         <li><button id="agregarEquipo" type="button" class="dropdown-item"><i class="bi bi-plus-circle me-2"></i>Agregar PC o Laptop</button></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><button id="cerrarSesion" type="button" class="dropdown-item">Cerrar sesión</button></li>
+                        <li><button id="cerrarSesion" type="button" class="dropdown-item text-danger">Cerrar sesión</button></li>
                     </ul>
                 </div>
-                <button id="botonCarrito" type="button" class="btn btn-link text-dark text-decoration-none p-0 position-relative" data-bs-toggle="modal" data-bs-target="#modalCarrito" title="Carrito">
+                <button id="botonCarrito" type="button" class="btn btn-link text-decoration-none p-0 position-relative nav-action-btn" data-bs-toggle="modal" data-bs-target="#modalCarrito" title="Carrito">
                     <i class="bi bi-bag"></i>
-                    <span id="carritoCantidad" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">0</span>
+                    <span id="carritoCantidad" class="position-absolute top-0 start-100 translate-middle badge rounded-pill d-none">0</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- 2. CARRUSEL HERO -->
-    <div id="heroCarousel" class="carousel slide mb-5" data-bs-ride="carousel">
+    <!-- BANNER PROMOCIONAL GLOBAL (Apple Message Bar) -->
+    <div class="apple-promo-ribbon">
+        <span>Certificación 0 Riesgo en cada componente: garantizamos compatibilidad o te devolvemos tu dinero. <a href="#catalogo">Explora las piezas &gt;</a></span>
+    </div>
+
+    <!-- 2. CARRUSEL HERO (Apple Gallery Showcase) -->
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
-            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+            <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1" aria-label="Slide 2"></button>
         </div>
         <div class="carousel-inner">
-            <div class="carousel-item active" data-bs-interval="5000">
-                <div class="bg-dark text-white p-5 text-center d-flex align-items-center" style="min-height: 70vh;">
+            <!-- Slide 1: Dark Band Hero -->
+            <div class="carousel-item active" data-bs-interval="6000">
+                <div class="apple-hero-slide apple-hero-slide-dark">
                     <div class="container">
-                        <span class="badge bg-success rounded-pill px-3 py-2 mb-3">CERTIFICACIÓN 0 RIESGO</span>
-                        <h1 class="display-2 fw-bold mb-3">Repuestos 100% Compatibles</h1>
-                        <p class="fs-4 text-light opacity-75 mb-4">¿Miedo a que la pieza no le quede a tu equipo? Validamos la compatibilidad exacta antes de enviarla.</p>
-                        <a href="#catalogo" class="btn btn-light rounded-pill btn-lg px-5 fw-bold">Buscar mi pieza</a>
+                        <span class="apple-tag apple-tag-dark">CERTIFICACIÓN 0 RIESGO</span>
+                        <h1 class="apple-hero-title">Repuestos 100% Compatibles</h1>
+                        <p class="apple-hero-subhead">¿Miedo a que la pieza no le quede a tu equipo? Validamos la compatibilidad exacta antes de enviarla.</p>
+                        <div class="apple-button-pair">
+                            <a href="#catalogo" class="btn btn-apple-primary">Buscar mi pieza</a>
+                            <a href="nosotros.html" class="btn btn-ghost-dark">Conoce más &gt;</a>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="carousel-item" data-bs-interval="5000">
-                <div class="bg-primary text-white p-5 text-center d-flex align-items-center" style="min-height: 70vh;">
+            <!-- Slide 2: Wash Hero -->
+            <div class="carousel-item" data-bs-interval="6000">
+                <div class="apple-hero-slide apple-hero-slide-wash">
                     <div class="container">
-                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 mb-3">CULTURA DIY</span>
-                        <h1 class="display-2 fw-bold mb-3">No es solo vender por vender</h1>
-                        <p class="fs-4 text-light opacity-75 mb-4">Todas nuestras piezas incluyen las herramientas necesarias y manuales paso a paso para que tú mismo actualices tu equipo.</p>
-                        <a href="#" class="btn btn-dark rounded-pill btn-lg px-5 fw-bold">Ver herramientas</a>
+                        <span class="apple-tag apple-tag-light">CULTURA DIY</span>
+                        <h1 class="apple-hero-title">No es solo vender por vender</h1>
+                        <p class="apple-hero-subhead text-secondary">Todas nuestras piezas incluyen las herramientas necesarias y manuales paso a paso para que tú mismo actualices tu equipo.</p>
+                        <div class="apple-button-pair">
+                            <a href="#catalogo" class="btn btn-apple-primary">Ver herramientas</a>
+                            <a href="#plan-canje" class="btn btn-apple-outline">Plan de Canje</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon"></span>
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Anterior</span>
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon"></span>
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Siguiente</span>
         </button>
     </div>
 
-    <!-- 3. MENÚ RÁPIDO DE CATEGORÍAS -->
-    <div id="catalogo" class="container mb-5 text-center">
-        <h3 class="fw-bold mb-4">Explora nuestro catálogo</h3>
-        <div class="d-flex flex-wrap justify-content-center gap-3">
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria active" data-categoria="">Todos</button>
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Repuestos Laptops">Baterías y Pantallas</button>
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Almacenamiento">Almacenamiento (SSD/HDD)</button>
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Componentes PC">Memoria RAM y componentes</button>
-            <button class="btn btn-outline-dark rounded-pill px-4 py-2 filtro-categoria" data-categoria="Mantenimiento PC">Mantenimiento y herramientas</button>
+    <!-- 3. MENÚ RÁPIDO DE CATEGORÍAS (Apple Segmented Bar) -->
+    <section id="catalogo" class="container text-center">
+        <h2 class="section-headline">Explora nuestro catálogo</h2>
+        <p class="section-subhead">Filtra por tipo de componente y actualiza con precisión.</p>
+        <div class="category-pill-container">
+            <button class="btn filtro-categoria active" data-categoria="">Todos</button>
+            <button class="btn filtro-categoria" data-categoria="Repuestos Laptops">Baterías y Pantallas</button>
+            <button class="btn filtro-categoria" data-categoria="Almacenamiento">Almacenamiento (SSD/HDD)</button>
+            <button class="btn filtro-categoria" data-categoria="Componentes PC">Memoria RAM y componentes</button>
+            <button class="btn filtro-categoria" data-categoria="Mantenimiento PC">Mantenimiento y herramientas</button>
         </div>
-    </div>
+    </section>
 
-    <div class="container mb-5">
-        <h2 class="fw-bold mb-4 text-center">Componentes Destacados</h2>
+    <!-- 4. GRID DE PRODUCTOS DESTACADOS -->
+    <section class="container product-section-wrapper">
+        <h2 class="section-headline mb-4">Componentes Destacados</h2>
         <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="contenedor-productos">
-            <p class="text-center text-muted col-12">Cargando catálogo...</p>
+            <p class="text-center text-muted col-12 py-5">Cargando catálogo...</p>
         </div>
-    </div>
+    </section>
 
     <!-- 5. SECCIÓN RESERVADA PARA LA RUTA DE MAPA -->
-    <div class="container mb-5" id="ubicacion">
-        <h2 class="fw-bold mb-4 text-center">Encuéntranos en el ITSOEH</h2>
+    <section class="container" id="ubicacion">
+        <h2 class="section-headline">Encuéntranos en el ITSOEH</h2>
+        <p class="section-subhead">Planifica tu visita o traza la ruta hacia nuestro centro de atención técnica.</p>
         <div class="row justify-content-center">
             <div class="col-lg-12">
-                <div class="card shadow-sm border-0 rounded-3">
-                    <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Trazado de Ruta</h5>
+                <div class="apple-map-card">
+                    <div class="apple-map-header">
+                        <h5>Trazado de Ruta</h5>
                         <small>Haz clic en el mapa para trazar tu ruta de origen</small>
                     </div>
-                    <div class="card-body p-0">
-                        <div id="contenedorMapa" class="rounded-bottom"></div>
-                    </div>
+                    <div id="contenedorMapa"></div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- 6. BANNER DESTACADO -->
-    <div class="container mb-5" id="plan-canje">
-        <div class="bg-dark text-white rounded-4 p-5 text-center shadow">
-            <span class="text-uppercase tracking-wide text-warning fw-bold d-block mb-2">Economía Circular</span>
-            <h2 class="display-4 fw-bold mb-3">Plan de Canje Activo</h2>
-            <p class="lead mb-4 opacity-75">Actualiza tu laptop o PC dejando tus componentes antiguos a cuenta.</p>
-            <a href="#" class="btn btn-outline-light rounded-pill btn-lg px-4">Cotizar mi pieza usada</a>
+    <!-- 6. BANNER DESTACADO (Apple Dark Band: Plan de Canje) -->
+    <section class="container" id="plan-canje">
+        <div class="apple-dark-band">
+            <span class="apple-tag">Economía Circular</span>
+            <h2>Plan de Canje Activo</h2>
+            <p class="lead">Actualiza tu laptop o PC dejando tus componentes antiguos a cuenta.</p>
+            <div class="apple-button-pair">
+                <a href="#" class="btn btn-apple-white" data-bs-toggle="modal" data-bs-target="#modalContacto">Cotizar mi pieza usada</a>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- 7. FOOTER -->
-    <footer class="bg-white border-top py-5 mt-5">
+    <!-- 7. FOOTER (Apple Dense Directory Grid) -->
+    <footer>
         <div class="container text-center text-md-start">
-            <div class="row text-muted small">
-                <div class="col-md-4 mb-3">
-                    <h5 class="fw-bold text-dark">E-Shop DIY</h5>
-                    <p>Tu destino número uno para repuestos de hardware, cultura DIY y actualización de equipos con cero riesgo.</p>
+            <div class="row gy-4">
+                <div class="col-md-4">
+                    <h5>E-Shop DIY</h5>
+                    <p>Tu destino de hardware y repuestos con cultura DIY, herramientas incluidas y Certificación 0 Riesgo.</p>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="fw-bold text-dark">Enlaces Útiles</h6>
+                <div class="col-md-3">
+                    <h6>Enlaces y Soporte</h6>
                     <ul class="list-unstyled">
-                        <li><a href="#" class="text-decoration-none text-muted">Soporte y Garantías</a></li>
-                        <li><a href="#" class="text-decoration-none text-muted">Política de Devolución "0 Riesgo"</a></li>
+                        <li><a href="#">Soporte y Garantías</a></li>
+                        <li><a href="#">Política de Devolución "0 Riesgo"</a></li>
+                        <li><a href="#" data-bs-toggle="modal" data-bs-target="#modalTerminos">Términos y Condiciones</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4 mb-3">
-                    <h6 class="fw-bold text-dark">Contacto</h6>
-                    <p>techstoreoficial693@gmail.com<br>Asesoría técnica 24/7</p>
+                <div class="col-md-3">
+                    <h6>Explorar</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="#catalogo">Catálogo Completo</a></li>
+                        <li><a href="nosotros.html">Quiénes Somos</a></li>
+                        <li><a href="#plan-canje">Plan de Canje</a></li>
+                        <li><a href="#ubicacion">Ubicación ITSOEH</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-2">
+                    <h6>Contacto</h6>
+                    <p class="mb-1">techstoreoficial693@gmail.com</p>
+                    <p class="text-muted">Asesoría técnica 24/7</p>
                 </div>
             </div>
             <hr>
-            <p class="text-center mb-0">&copy; 2026 E-Shop DIY. Todos los derechos reservados.</p>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center small text-muted">
+                <p class="mb-0">&copy; 2026 E-Shop DIY. Todos los derechos reservados.</p>
+                <div class="d-flex gap-3 mt-2 mt-md-0">
+                    <a href="#">Privacidad</a>
+                    <a href="#">Aviso Legal</a>
+                    <a href="#">Cookies</a>
+                </div>
+            </div>
         </div>
     </footer>
 
     <!-- BOTÓN DE WHATSAPP FLOTANTE -->
     <a href="https://wa.me/527721188960?text=Hola,%20me%20interesa%20consultar%20sobre%20un%20componente%20de%20su%20catálogo" 
-       class="btn btn-success position-fixed bottom-0 end-0 m-4 rounded-circle shadow-lg d-flex align-items-center justify-content-center" 
-       style="width: 60px; height: 60px; z-index: 1050;" 
+       class="whatsapp-float-btn" 
        target="_blank" 
        rel="noopener noreferrer"
        title="Contáctanos por WhatsApp">
-        <i class="bi bi-whatsapp fs-3"></i>
+        <i class="bi bi-whatsapp fs-4"></i>
     </a>
 
     <!-- ========================================== -->
@@ -183,14 +218,14 @@
     <!-- MODAL DE AUTENTICACIÓN (LOGIN / REGISTRO) -->
     <div class="modal fade" id="modalAuth" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow border-0">
+            <div class="modal-content">
                 <div class="modal-header border-0 pb-0 align-items-start">
-                    <ul class="nav nav-pills flex-grow-1 nav-justified me-4" id="pills-tab" role="tablist">
+                    <ul class="nav nav-pills flex-grow-1 nav-justified me-3" id="pills-tab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active fw-bold rounded-pill" data-bs-toggle="pill" data-bs-target="#pills-login" type="button" role="tab">Iniciar Sesión</button>
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#pills-login" type="button" role="tab">Iniciar Sesión</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-bold rounded-pill" data-bs-toggle="pill" data-bs-target="#pills-register" type="button" role="tab">Crear Cuenta</button>
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#pills-register" type="button" role="tab">Crear Cuenta</button>
                         </li>
                     </ul>
                     <button type="button" class="btn-close flex-shrink-0 mt-1" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -205,17 +240,17 @@
                             </div>
                             <form id="formLogin">
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold">Correo electrónico</label>
-                                    <input type="email" id="loginEmail" class="form-control rounded-pill" placeholder="ejemplo@correo.com" required>
+                                    <label class="form-label">Correo electrónico</label>
+                                    <input type="email" id="loginEmail" class="form-control" placeholder="ejemplo@correo.com" required>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="form-label small fw-bold">Contraseña</label>
+                                    <label class="form-label">Contraseña</label>
                                     <div class="input-group">
                                         <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
                                         <button type="button" class="btn btn-outline-secondary" data-toggle-password="loginPassword" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-primary rounded-pill w-100 py-2 fw-bold">Entrar</button>
+                                <button type="submit" class="btn btn-primary w-100 py-2">Entrar</button>
                             </form>
                             <div id="msgLogin" class="mt-3 small text-center fw-medium"></div>
                         </div>
@@ -228,21 +263,21 @@
                             </div>
                             <form id="formRegistro">
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold">Nombre completo</label>
-                                    <input type="text" id="regName" class="form-control rounded-pill" required>
+                                    <label class="form-label">Nombre completo</label>
+                                    <input type="text" id="regName" class="form-control" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-bold">Correo electrónico</label>
-                                    <input type="email" id="regEmail" class="form-control rounded-pill" required>
+                                    <label class="form-label">Correo electrónico</label>
+                                    <input type="email" id="regEmail" class="form-control" required>
                                 </div>
                                 <div class="mb-4">
-                                    <label class="form-label small fw-bold">Contraseña</label>
+                                    <label class="form-label">Contraseña</label>
                                     <div class="input-group">
                                         <input type="password" id="regPassword" class="form-control" pattern="(?=.*\d)(?=.*[a-zA-Z])(?=.*[\W_]).{8,}" title="Debe contener al menos 8 caracteres, incluyendo un número, una letra y un carácter especial" required>
                                         <button type="button" class="btn btn-outline-secondary" data-toggle-password="regPassword" aria-label="Mostrar contraseña"><i class="bi bi-eye"></i></button>
                                     </div>
                                 </div>
-                                <button type="submit" class="btn btn-dark rounded-pill w-100 py-2 fw-bold">Registrarse</button>
+                                <button type="submit" class="btn btn-dark w-100 py-2">Registrarse</button>
                             </form>
                             <div id="msgRegistro" class="mt-3 small text-center fw-medium"></div>
                         </div>
@@ -255,10 +290,10 @@
     <!-- MODAL DE EQUIPOS DEL USUARIO -->
     <div class="modal fade" id="modalEquipos" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-pc-display me-2"></i>Mis equipos</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pc-display me-2"></i>Mis equipos</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div id="listaEquipos" class="row g-3">
@@ -268,7 +303,7 @@
                         <i class="bi bi-info-circle fs-3 d-block mb-2"></i>
                         Aún no tienes equipos registrados.
                     </div>
-                    <button id="nuevoEquipoDesdeLista" type="button" class="btn btn-primary rounded-pill w-100 mt-3">
+                    <button id="nuevoEquipoDesdeLista" type="button" class="btn btn-primary w-100 mt-3">
                         <i class="bi bi-plus-circle me-2"></i>Agregar PC o Laptop
                     </button>
                 </div>
@@ -279,75 +314,75 @@
     <!-- MODAL NUEVO EQUIPO -->
     <div class="modal fade" id="modalNuevoEquipo" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Agregar equipo</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Agregar equipo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <form id="formEquipo">
                     <div class="modal-body p-4">
                         <p class="text-muted small">Registra las especificaciones principales para validar qué productos son compatibles con tu equipo en la siguiente etapa.</p>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Nombre del equipo *</label>
-                                <input id="equipoNombre" class="form-control rounded-pill" placeholder="Mi PC Gamer" required maxlength="80">
+                                <label class="form-label">Nombre del equipo *</label>
+                                <input id="equipoNombre" class="form-control" placeholder="Mi PC Gamer" required maxlength="80">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Tipo de equipo *</label>
-                                <select id="equipoTipo" class="form-select rounded-pill" required>
+                                <label class="form-label">Tipo de equipo *</label>
+                                <select id="equipoTipo" class="form-select" required>
                                     <option value="">Selecciona una opción</option>
                                     <option value="PC">PC de escritorio</option>
                                     <option value="Laptop">Laptop</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Marca *</label>
-                                <input id="equipoMarca" class="form-control rounded-pill" placeholder="Lenovo, ASUS, HP..." required maxlength="80">
+                                <label class="form-label">Marca *</label>
+                                <input id="equipoMarca" class="form-control" placeholder="Lenovo, ASUS, HP..." required maxlength="80">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Modelo *</label>
-                                <input id="equipoModelo" class="form-control rounded-pill" placeholder="Modelo o tarjeta madre" required maxlength="120">
+                                <label class="form-label">Modelo *</label>
+                                <input id="equipoModelo" class="form-control" placeholder="Modelo o tarjeta madre" required maxlength="120">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Sistema operativo</label>
-                                <input id="equipoSistema" class="form-control rounded-pill" placeholder="Windows 11">
+                                <label class="form-label">Sistema operativo</label>
+                                <input id="equipoSistema" class="form-control" placeholder="Windows 11">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Tipo de memoria RAM *</label>
-                                <select id="equipoRamTipo" class="form-select rounded-pill" required>
+                                <label class="form-label">Tipo de memoria RAM *</label>
+                                <select id="equipoRamTipo" class="form-select" required>
                                     <option value="">Selecciona una opción</option>
                                     <option>DDR3</option><option>DDR4</option><option>DDR5</option>
                                     <option>LPDDR4</option><option>LPDDR5</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">RAM instalada (GB)</label>
-                                <input id="equipoRamCapacidad" type="number" min="1" max="2048" class="form-control rounded-pill" placeholder="16">
+                                <label class="form-label">RAM instalada (GB)</label>
+                                <input id="equipoRamCapacidad" type="number" min="1" max="2048" class="form-control" placeholder="16">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Ranuras de RAM</label>
-                                <input id="equipoRamRanuras" type="number" min="1" max="32" class="form-control rounded-pill" placeholder="2">
+                                <label class="form-label">Ranuras de RAM</label>
+                                <input id="equipoRamRanuras" type="number" min="1" max="32" class="form-control" placeholder="2">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Almacenamiento compatible *</label>
-                                <select id="equipoAlmacenamientoTipo" class="form-select rounded-pill" required>
+                                <label class="form-label">Almacenamiento compatible *</label>
+                                <select id="equipoAlmacenamientoTipo" class="form-select" required>
                                     <option value="">Selecciona una opción</option>
                                     <option>SATA 2.5"</option><option>SATA M.2</option>
                                     <option>NVMe M.2</option><option>SATA 2.5" y NVMe M.2</option>
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label small fw-bold">Almacenamiento actual (GB)</label>
-                                <input id="equipoAlmacenamientoCapacidad" type="number" min="1" max="100000" class="form-control rounded-pill" placeholder="512">
+                                <label class="form-label">Almacenamiento actual (GB)</label>
+                                <input id="equipoAlmacenamientoCapacidad" type="number" min="1" max="100000" class="form-control" placeholder="512">
                             </div>
                         </div>
                         <div id="camposPc" class="mt-4 d-none">
                             <h6 class="fw-bold border-bottom pb-2"><i class="bi bi-pc-display-horizontal me-2"></i>Datos adicionales de PC</h6>
                             <div class="row g-3">
-                                <div class="col-md-6"><label class="form-label small fw-bold">Procesador</label><input id="equipoProcesador" class="form-control rounded-pill" placeholder="Intel Core i5-12400"></div>
-                                <div class="col-md-6"><label class="form-label small fw-bold">Socket</label><input id="equipoSocket" class="form-control rounded-pill" placeholder="LGA1700 o AM4"></div>
-                                <div class="col-md-6"><label class="form-label small fw-bold">Tarjeta gráfica</label><input id="equipoGrafica" class="form-control rounded-pill" placeholder="Integrada o modelo"></div>
-                                <div class="col-md-6"><label class="form-label small fw-bold">Fuente de poder (W)</label><input id="equipoFuente" type="number" min="1" max="5000" class="form-control rounded-pill" placeholder="650"></div>
+                                <div class="col-md-6"><label class="form-label">Procesador</label><input id="equipoProcesador" class="form-control" placeholder="Intel Core i5-12400"></div>
+                                <div class="col-md-6"><label class="form-label">Socket</label><input id="equipoSocket" class="form-control" placeholder="LGA1700 o AM4"></div>
+                                <div class="col-md-6"><label class="form-label">Tarjeta gráfica</label><input id="equipoGrafica" class="form-control" placeholder="Integrada o modelo"></div>
+                                <div class="col-md-6"><label class="form-label">Fuente de poder (W)</label><input id="equipoFuente" type="number" min="1" max="5000" class="form-control" placeholder="650"></div>
                             </div>
                         </div>
                         <div id="notaLaptop" class="alert alert-info small mt-4 mb-0 d-none">
@@ -355,9 +390,9 @@
                         </div>
                         <div id="msgEquipo" class="small text-center fw-medium mt-3"></div>
                     </div>
-                    <div class="modal-footer border-0 px-4 pb-4">
-                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-save me-2"></i>Guardar y agregar equipo
                         </button>
                     </div>
@@ -369,17 +404,17 @@
     <!-- MODAL COMPATIBILIDAD -->
     <div class="modal fade" id="modalCompatibilidad" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-secondary text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-check me-2"></i>Validar compatibilidad</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-shield-check me-2"></i>Validar compatibilidad</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <h6 id="productoCompatibilidadNombre" class="fw-bold mb-1">Producto</h6>
                     <p id="productoCompatibilidadPrecio" class="text-muted small mb-3">$0 MXN</p>
 
-                    <label for="equipoCompatibilidad" class="form-label small fw-bold">Selecciona el equipo donde instalarás este producto</label>
-                    <select id="equipoCompatibilidad" class="form-select rounded-pill mb-3">
+                    <label for="equipoCompatibilidad" class="form-label">Selecciona el equipo donde instalarás este producto</label>
+                    <select id="equipoCompatibilidad" class="form-select mb-3">
                         <option value="">Selecciona un equipo</option>
                     </select>
 
@@ -389,8 +424,8 @@
                     </div>
                     <div id="msgCompatibilidad" class="small fw-medium"></div>
                 </div>
-                <div class="modal-footer border-0 px-4 pb-4">
-                    <button id="btnAgregarCarrito" type="button" class="btn btn-success rounded-pill px-4" disabled>
+                <div class="modal-footer">
+                    <button id="btnAgregarCarrito" type="button" class="btn btn-primary px-4" disabled>
                         <i class="bi bi-bag-plus me-2"></i>Agregar al carrito
                     </button>
                 </div>
@@ -401,10 +436,10 @@
     <!-- MODAL CARRITO -->
     <div class="modal fade" id="modalCarrito" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-bag-check me-2"></i>Carrito de compras</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-bag-check me-2"></i>Carrito de compras</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div id="listaCarrito"></div>
@@ -413,14 +448,14 @@
                         Aún no has agregado productos al carrito.
                     </div>
                 </div>
-                <div class="modal-footer border-0 px-4 pb-4 justify-content-between">
+                <div class="modal-footer justify-content-between">
                     <div>
-                        <span id="carritoTotal" class="fw-bold text-dark d-block">Total: $0 MXN</span>
+                        <span id="carritoTotal" class="fw-bold text-dark d-block fs-5">Total: $0 MXN</span>
                         <span id="mensajeCheckout" class="small text-muted"></span>
                     </div>
                     <div class="d-flex gap-2">
-                        <button id="btnVaciarCarrito" type="button" class="btn btn-outline-danger rounded-pill">Vaciar carrito</button>
-                        <button id="btnCheckout" type="button" class="btn btn-primary rounded-pill" disabled>Continuar compra</button>
+                        <button id="btnVaciarCarrito" type="button" class="btn btn-outline-danger">Vaciar carrito</button>
+                        <button id="btnCheckout" type="button" class="btn btn-primary" disabled>Continuar compra</button>
                     </div>
                 </div>
             </div>
@@ -430,69 +465,72 @@
     <!-- MODAL CHECKOUT -->
     <div class="modal fade" id="modalCheckout" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-truck me-2"></i>Finalizar compra</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-truck me-2"></i>Finalizar compra</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <form id="formCheckout">
                     <div class="modal-body p-4">
-                        <div id="resumenCheckout" class="bg-light rounded-4 p-3 mb-4"></div>
+                        <div id="resumenCheckout" class="mb-4"></div>
                         <h6 class="fw-bold mb-3">Datos de envío</h6>
                         <div class="mb-3">
-                            <label for="direccionGuardada" class="form-label small fw-bold">Usar una dirección guardada</label>
-                            <select id="direccionGuardada" class="form-select rounded-pill">
+                            <label for="direccionGuardada" class="form-label">Usar una dirección guardada</label>
+                            <select id="direccionGuardada" class="form-select">
                                 <option value="">Capturar una nueva dirección</option>
                             </select>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="envioNombre" class="form-label small fw-bold">Nombre completo *</label>
-                                <input id="envioNombre" class="form-control rounded-pill" maxlength="120" required>
+                                <label for="envioNombre" class="form-label">Nombre completo *</label>
+                                <input id="envioNombre" class="form-control" maxlength="120" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="envioTelefono" class="form-label small fw-bold">Teléfono *</label>
-                                <input id="envioTelefono" type="tel" class="form-control rounded-pill" maxlength="30" required>
+                                <label for="envioTelefono" class="form-label">Teléfono *</label>
+                                <input id="envioTelefono" type="tel" class="form-control" maxlength="30" required>
                             </div>
                             <div class="col-12">
-                                <label for="envioDireccion" class="form-label small fw-bold">Dirección *</label>
-                                <input id="envioDireccion" class="form-control rounded-pill" maxlength="200" placeholder="Calle, número y colonia" required>
+                                <label for="envioDireccion" class="form-label">Dirección *</label>
+                                <input id="envioDireccion" class="form-control" maxlength="200" placeholder="Calle, número y colonia" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="envioCiudad" class="form-label small fw-bold">Ciudad *</label>
-                                <input id="envioCiudad" class="form-control rounded-pill" maxlength="80" required>
+                                <label for="envioCiudad" class="form-label">Ciudad *</label>
+                                <input id="envioCiudad" class="form-control" maxlength="80" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="envioEstado" class="form-label small fw-bold">Estado *</label>
-                                <input id="envioEstado" class="form-control rounded-pill" maxlength="80" required>
+                                <label for="envioEstado" class="form-label">Estado *</label>
+                                <input id="envioEstado" class="form-control" maxlength="80" required>
                             </div>
                             <div class="col-md-4">
-                                <label for="envioCodigoPostal" class="form-label small fw-bold">Código postal *</label>
-                                <input id="envioCodigoPostal" class="form-control rounded-pill" maxlength="10" pattern="[0-9]{5}" required>
+                                <label for="envioCodigoPostal" class="form-label">Código postal *</label>
+                                <input id="envioCodigoPostal" class="form-control" maxlength="10" pattern="[0-9]{5}" required>
                             </div>
                         </div>
 
                         <!-- MÉTODOS DE PAGO -->
                         <div class="checkout-payment mt-4">
-                        <div class="checkout-section-title"><span>1</span><div><h6>Elige cómo pagar</h6><small>Todos tus pagos están protegidos</small></div></div>
-                        <div class="payment-options">
-                            <input id="metodoPago" type="hidden" value="Paynet">
-                            <button id="btnPagarPaynet" type="button" class="payment-option">
-                                <span class="payment-icon paynet-icon"><i class="bi bi-upc-scan"></i></span>
-                                <span><strong>Paynet</strong><small>Paga en efectivo en sucursal</small></span>
-                                <i class="bi bi-chevron-right payment-arrow"></i>
-                            </button>
-                            <button id="btnPagarTarjeta" type="button" class="payment-option">
-                                <span class="payment-icon card-icon"><i class="bi bi-credit-card"></i></span>
-                                <span><strong>Tarjeta</strong><small>Crédito o débito · Simulado</small></span>
-                                <i class="bi bi-chevron-right payment-arrow"></i>
-                            </button>
-                            <button id="btnPagarPayPal" type="button" class="payment-option">
-                                <span class="payment-icon paypal-icon"><i class="bi bi-paypal"></i></span>
-                                <span><strong>PayPal</strong><small>Paga de forma rápida · Simulado</small></span>
-                                <i class="bi bi-chevron-right payment-arrow"></i>
-                            </button>
-                        </div>
+                            <div class="checkout-section-title">
+                                <span>1</span>
+                                <div><h6>Elige cómo pagar</h6><small>Todos tus pagos están protegidos</small></div>
+                            </div>
+                            <div class="payment-options">
+                                <input id="metodoPago" type="hidden" value="Paynet">
+                                <button id="btnPagarPaynet" type="button" class="payment-option">
+                                    <span class="payment-icon paynet-icon"><i class="bi bi-upc-scan"></i></span>
+                                    <span><strong>Paynet</strong><small>Paga en efectivo en sucursal</small></span>
+                                    <i class="bi bi-chevron-right payment-arrow ms-auto"></i>
+                                </button>
+                                <button id="btnPagarTarjeta" type="button" class="payment-option">
+                                    <span class="payment-icon card-icon"><i class="bi bi-credit-card"></i></span>
+                                    <span><strong>Tarjeta</strong><small>Crédito o débito · Simulado</small></span>
+                                    <i class="bi bi-chevron-right payment-arrow ms-auto"></i>
+                                </button>
+                                <button id="btnPagarPayPal" type="button" class="payment-option">
+                                    <span class="payment-icon paypal-icon"><i class="bi bi-paypal"></i></span>
+                                    <span><strong>PayPal</strong><small>Paga de forma rápida · Simulado</small></span>
+                                    <i class="bi bi-chevron-right payment-arrow ms-auto"></i>
+                                </button>
+                            </div>
                             <div id="paynetBarcodeContainer" class="paynet-code d-none">
                                 <div class="small text-muted mb-2">Código de barras de pago Paynet</div>
                                 <div id="paynetBarcodeVisual" class="d-flex justify-content-center align-items-end gap-1 bg-white border rounded-3 p-3" style="min-height: 88px; overflow-x: auto;"></div>
@@ -514,7 +552,7 @@
                         <div id="msgCheckout" class="small text-center fw-medium mt-3"></div>
                     </div>
                     
-                    <div class="modal-footer border-0 px-4 pb-4 justify-content-center bg-light rounded-bottom-4 mt-2">
+                    <div class="modal-footer justify-content-between">
                         <span id="checkoutTotal" class="fw-bold fs-4 text-dark">Total: $0 MXN</span>
                     </div>
                 </form>
@@ -525,13 +563,13 @@
     <!-- MODAL TÉRMINOS Y CONDICIONES -->
     <div class="modal fade" id="modalTerminos" tabindex="-1" aria-labelledby="tituloTerminos" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
+            <div class="modal-content">
+                <div class="modal-header">
                     <div>
-                        <h5 id="tituloTerminos" class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Términos y condiciones de compra</h5>
+                        <h5 id="tituloTerminos" class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>Términos y condiciones de compra</h5>
                         <div class="small opacity-75 mt-1">Última actualización: octubre de 2026</div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar términos y condiciones"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar términos y condiciones"></button>
                 </div>
                 <div class="modal-body terms-content">
                     <p>Bienvenido al sistema de compras de <strong>E-Shop DIY</strong> (en adelante, “la Tienda”). Estas condiciones regulan el uso del carrito de compras y las transacciones realizadas en nuestro sitio web, de conformidad con la legislación mexicana aplicable en materia de protección al consumidor.</p>
@@ -565,8 +603,8 @@
 
                     <div class="terms-notice"><i class="bi bi-info-circle me-2"></i>Estos términos no sustituyen los derechos que la legislación mexicana reconoce a las personas consumidoras.</div>
                 </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Entendido</button>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary px-4" data-bs-dismiss="modal">Entendido</button>
                 </div>
             </div>
         </div>
@@ -575,10 +613,10 @@
     <!-- MODAL COMPRAS -->
     <div class="modal fade" id="modalCompras" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-receipt me-2"></i>Mis compras</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Mis compras</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div id="listaCompras">
@@ -592,13 +630,13 @@
     <!-- MODAL DE RESEÑAS -->
     <div class="modal fade" id="modalResenas" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
+            <div class="modal-content">
+                <div class="modal-header">
                     <div>
-                        <h5 id="tituloResenas" class="modal-title fw-bold"><i class="bi bi-star me-2"></i>Reseñas del producto</h5>
+                        <h5 id="tituloResenas" class="modal-title"><i class="bi bi-star me-2"></i>Reseñas del producto</h5>
                         <div id="resumenResenas" class="small opacity-75 mt-1"></div>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div id="listaResenas">
@@ -613,9 +651,9 @@
                             <button type="button" class="review-star" data-estrellas="4" aria-label="4 estrellas"><i class="bi bi-star"></i></button>
                             <button type="button" class="review-star" data-estrellas="5" aria-label="5 estrellas"><i class="bi bi-star"></i></button>
                         </div>
-                        <textarea id="comentarioResena" class="form-control rounded-3" rows="3" maxlength="500" placeholder="¿Qué te pareció este producto?" required></textarea>
+                        <textarea id="comentarioResena" class="form-control" rows="3" maxlength="500" placeholder="¿Qué te pareció este producto?" required></textarea>
                         <div id="msgResena" class="small fw-medium mt-2"></div>
-                        <button id="btnPublicarResena" type="button" class="btn btn-primary rounded-pill mt-2">
+                        <button id="btnPublicarResena" type="button" class="btn btn-primary mt-3">
                             <i class="bi bi-send me-2"></i>Publicar reseña
                         </button>
                     </div>
@@ -627,16 +665,16 @@
     <!-- MODAL DIRECCIONES -->
     <div class="modal fade" id="modalDirecciones" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-geo-alt me-2"></i>Mis direcciones</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-geo-alt me-2"></i>Mis direcciones</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <div id="listaDirecciones" class="row g-3">
                         <p class="text-muted text-center mb-0">Cargando direcciones...</p>
                     </div>
-                    <button id="nuevaDireccion" type="button" class="btn btn-primary rounded-pill w-100 mt-3">
+                    <button id="nuevaDireccion" type="button" class="btn btn-primary w-100 mt-3">
                         <i class="bi bi-plus-circle me-2"></i>Agregar dirección
                     </button>
                 </div>
@@ -647,27 +685,27 @@
     <!-- MODAL NUEVA DIRECCION -->
     <div class="modal fade" id="modalNuevaDireccion" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-primary text-white rounded-top-4">
-                    <h5 id="tituloDireccion" class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i>Agregar dirección</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="tituloDireccion" class="modal-title"><i class="bi bi-plus-circle me-2"></i>Agregar dirección</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <form id="formDireccion">
                     <div class="modal-body p-4">
                         <div class="row g-3">
-                            <div class="col-md-6"><label class="form-label small fw-bold">Alias *</label><input id="direccionAlias" class="form-control rounded-pill" placeholder="Casa, trabajo..." maxlength="50" required></div>
-                            <div class="col-md-6"><label class="form-label small fw-bold">Nombre completo *</label><input id="direccionNombre" class="form-control rounded-pill" maxlength="120" required></div>
-                            <div class="col-md-6"><label class="form-label small fw-bold">Teléfono *</label><input id="direccionTelefono" type="tel" class="form-control rounded-pill" maxlength="30" required></div>
-                            <div class="col-12"><label class="form-label small fw-bold">Dirección *</label><input id="direccionCalle" class="form-control rounded-pill" placeholder="Calle, número y colonia" maxlength="200" required></div>
-                            <div class="col-md-4"><label class="form-label small fw-bold">Ciudad *</label><input id="direccionCiudad" class="form-control rounded-pill" maxlength="80" required></div>
-                            <div class="col-md-4"><label class="form-label small fw-bold">Estado *</label><input id="direccionEstado" class="form-control rounded-pill" maxlength="80" required></div>
-                            <div class="col-md-4"><label class="form-label small fw-bold">Código postal *</label><input id="direccionCodigoPostal" class="form-control rounded-pill" maxlength="10" pattern="[0-9]{5}" required></div>
+                            <div class="col-md-6"><label class="form-label">Alias *</label><input id="direccionAlias" class="form-control" placeholder="Casa, trabajo..." maxlength="50" required></div>
+                            <div class="col-md-6"><label class="form-label">Nombre completo *</label><input id="direccionNombre" class="form-control" maxlength="120" required></div>
+                            <div class="col-md-6"><label class="form-label">Teléfono *</label><input id="direccionTelefono" type="tel" class="form-control" maxlength="30" required></div>
+                            <div class="col-12"><label class="form-label">Dirección *</label><input id="direccionCalle" class="form-control" placeholder="Calle, número y colonia" maxlength="200" required></div>
+                            <div class="col-md-4"><label class="form-label">Ciudad *</label><input id="direccionCiudad" class="form-control" maxlength="80" required></div>
+                            <div class="col-md-4"><label class="form-label">Estado *</label><input id="direccionEstado" class="form-control" maxlength="80" required></div>
+                            <div class="col-md-4"><label class="form-label">Código postal *</label><input id="direccionCodigoPostal" class="form-control" maxlength="10" pattern="[0-9]{5}" required></div>
                         </div>
                         <div id="msgDireccion" class="small text-center fw-medium mt-3"></div>
                     </div>
-                    <div class="modal-footer border-0 px-4 pb-4">
-                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary rounded-pill"><i class="bi bi-save me-2"></i>Guardar dirección</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Guardar dirección</button>
                     </div>
                 </form>
             </div>
@@ -677,34 +715,33 @@
     <!-- MODAL DE CONTACTO -->
     <div class="modal fade" id="modalContacto" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-4 shadow border-0">
-                <div class="modal-header bg-dark text-white rounded-top-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-envelope me-2"></i>Envíanos un mensaje</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-envelope me-2"></i>Envíanos un mensaje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
                 <div class="modal-body p-4">
                     <p class="text-muted small mb-4">¿Tienes dudas sobre la compatibilidad de una pieza o sobre nuestro plan de canje? Escríbenos y te responderemos a la brevedad.</p>
                     <form id="formContacto">
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Tu Nombre</label>
-                            <input type="text" id="contNombre" class="form-control rounded-pill" required>
+                            <label class="form-label">Tu Nombre</label>
+                            <input type="text" id="contNombre" class="form-control" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label small fw-bold">Tu Correo</label>
-                            <input type="email" id="contEmail" class="form-control rounded-pill" required>
+                            <label class="form-label">Tu Correo</label>
+                            <input type="email" id="contEmail" class="form-control" required>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label small fw-bold">Mensaje</label>
-                            <textarea id="contMensaje" class="form-control rounded-3" rows="3" placeholder="Escribe tu consulta aquí..." required></textarea>
+                            <label class="form-label">Mensaje</label>
+                            <textarea id="contMensaje" class="form-control" rows="3" placeholder="Escribe tu consulta aquí..." required></textarea>
                         </div>
-                        <button type="submit" class="btn btn-dark rounded-pill w-100 py-2 fw-bold">Enviar Mensaje</button>
+                        <button type="submit" class="btn btn-primary w-100 py-2">Enviar Mensaje</button>
                     </form>
                     <div id="msgContacto" class="mt-3 small text-center fw-medium"></div>
                 </div>
             </div>
         </div>
     </div>
-
 
     <!-- Dependencias JS Externas -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
