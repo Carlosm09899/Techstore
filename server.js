@@ -9,6 +9,7 @@ const authRoutes = require('./routes/authRoutes');
 const User = require('./models/user');
 const Order = require('./models/order');
 const Review = require('./models/review');
+const { productosIniciales } = require('./scripts/seedProducts');
 
 const app = express();
 app.use(express.static(__dirname));
@@ -21,8 +22,30 @@ app.use('/api/auth', authRoutes);
 // (Reemplaza con tu usuario, contraseña y la URL de tu cluster)
 const MONGO_URI = process.env.MONGODB_URI;
 
+async function sincronizarCatalogo() {
+  try {
+    const stockMinimo = 15;
+    for (const producto of productosIniciales) {
+      await Producto.updateOne(
+        { nombre: producto.nombre },
+        {
+          $set: { ...producto, activo: true },
+          $setOnInsert: { stock: stockMinimo }
+        },
+        { upsert: true }
+      );
+    }
+    console.log(`Catálogo sincronizado exitosamente (${productosIniciales.length} productos).`);
+  } catch (error) {
+    console.warn("Aviso al sincronizar catálogo con MongoDB:", error.message);
+  }
+}
+
 mongoose.connect(MONGO_URI)
-  .then(() => console.log("¡Conectado exitosamente a MongoDB Atlas!"))
+  .then(() => {
+    console.log("¡Conectado exitosamente a MongoDB Atlas!");
+    sincronizarCatalogo();
+  })
   .catch(err => console.error("Error de conexión:", err));
 
 // 2. CREAR EL MODELO / ESQUEMA DE PRODUCTOS
@@ -60,54 +83,155 @@ const productoSchema = new mongoose.Schema({
 
 const Producto = mongoose.model('Producto', productoSchema, 'productos');
 
+function normalizarTexto(texto) {
+  return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+function parsearLista(valor) {
+  if (Array.isArray(valor)) {
+    return valor.flatMap((item) => String(item || '').split(/[,\/]/)).map((item) => item.trim()).filter(Boolean);
+  }
+  if (typeof valor === 'string') {
+    return valor.split(/[,\/]/).map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+}
+
 function obtenerReglasCompatibilidad(producto) {
-  const reglas = producto.compatibilidad;
+  const reglas = producto.compatibilidad || {};
+  let tipoComponente = String(reglas.tipoComponente || '').toUpperCase().trim();
+  const tipoProd = String(producto.tipo_producto || '').toUpperCase().trim();
+  const catProd = String(producto.categoria || '').toUpperCase();
+  const nombreProd = String(producto.nombre || '').toUpperCase();
+
+  // Inferencia inteligente si no está explícito en compatibilidad
+  if (!tipoComponente || tipoComponente === 'OTRO') {
+    if (tipoProd === 'RAM' || nombreProd.includes('RAM') || catProd.includes('RAM') || nombreProd.match(/\bDDR[345]\b/)) {
+      tipoComponente = 'RAM';
+    } else if (tipoProd === 'SSD' || tipoProd === 'HDD' || catProd.includes('ALMACENAMIENTO') || nombreProd.includes('SSD') || nombreProd.includes('DISCO DURO') || nombreProd.includes('NVME')) {
+      tipoComponente = 'ALMACENAMIENTO';
+    } else if (tipoProd === 'BATERIA' || catProd.includes('LAPTOP') || nombreProd.includes('BATERIA') || nombreProd.includes('PANTALLA')) {
+      tipoComponente = 'REPUESTO_LAPTOP';
+    } else {
+      tipoComponente = 'OTRO';
+    }
+  }
+
+  let ramTipos = parsearLista(reglas.ramTipos);
+  if (tipoComponente === 'RAM' && ramTipos.length === 0) {
+    const textoBuscar = `${nombreProd} ${String(producto.descripcion_corta || '').toUpperCase()}`;
+    const encontrados = textoBuscar.match(/\b(LPDDR5|LPDDR4|DDR5|DDR4|DDR3)\b/g);
+    if (encontrados) ramTipos = Array.from(new Set(encontrados));
+  }
+
+  let almacenamientoTipos = parsearLista(reglas.almacenamientoTipos);
+  if (tipoComponente === 'ALMACENAMIENTO' && almacenamientoTipos.length === 0) {
+    const textoBuscar = normalizarTexto(`${nombreProd} ${producto.descripcion_corta || ''}`);
+    if (textoBuscar.includes('nvme') || textoBuscar.includes('pcie')) almacenamientoTipos.push('NVMe M.2');
+    else if (textoBuscar.includes('m.2') && textoBuscar.includes('sata')) almacenamientoTipos.push('SATA M.2');
+    else if (textoBuscar.includes('sata') || textoBuscar.includes('disco') || textoBuscar.includes('hdd') || textoBuscar.includes('ssd')) almacenamientoTipos.push('SATA 2.5"');
+  }
+
   return {
-    tipoComponente: reglas?.tipoComponente || 'OTRO',
-    ramTipos: Array.isArray(reglas?.ramTipos) ? reglas.ramTipos : [],
-    almacenamientoTipos: Array.isArray(reglas?.almacenamientoTipos) ? reglas.almacenamientoTipos : [],
-    capacidadMinimaGB: reglas?.capacidadMinimaGB || null,
-    capacidadMaximaGB: reglas?.capacidadMaximaGB || null
+    tipoComponente,
+    ramTipos,
+    almacenamientoTipos,
+    capacidadMinimaGB: reglas.capacidadMinimaGB || null,
+    capacidadMaximaGB: reglas.capacidadMaximaGB || null
   };
 }
 
 function tiposAlmacenamiento(tipo) {
-  const valor = String(tipo || '').toLowerCase();
-  const tipos = [];
-  if (valor === 'sata_25') tipos.push('SATA_25');
-  if (valor === 'sata_m2') tipos.push('SATA_M2');
-  if (valor === 'nvme_m2') tipos.push('NVME_M2');
-  if (valor.includes('sata') && (valor.includes('2.5') || valor.includes('25'))) tipos.push('SATA_25');
-  if (valor.includes('sata') && valor.includes('m.2')) tipos.push('SATA_M2');
-  if (valor.includes('nvme')) tipos.push('NVME_M2');
-  return tipos;
+  const valor = normalizarTexto(tipo);
+  const tipos = new Set();
+
+  if (valor.includes('nvme') || valor.includes('pcie')) {
+    tipos.add('NVME_M2');
+  }
+  if (valor.includes('sata') && (valor.includes('m.2') || valor.includes('m2'))) {
+    tipos.add('SATA_M2');
+  }
+  if (valor.includes('sata') || valor.includes('2.5') || valor.includes('3.5') || valor.includes('hdd') || valor.includes('disco') || valor.includes('mecanico')) {
+    tipos.add('SATA_25');
+  }
+  if (valor.includes('m.2') || valor.includes('m2')) {
+    tipos.add('NVME_M2');
+    tipos.add('SATA_M2');
+  }
+  if (valor.includes('ssd') && tipos.size === 0) {
+    tipos.add('SATA_25');
+    tipos.add('NVME_M2');
+  }
+
+  return Array.from(tipos);
 }
 
 function normalizarTiposReglaAlmacenamiento(tipos) {
-  return tipos.flatMap((tipo) => tiposAlmacenamiento(tipo));
+  return parsearLista(tipos).flatMap((tipo) => tiposAlmacenamiento(tipo));
 }
 
 function validarCompatibilidadProducto(producto, equipo) {
+  if (!equipo) {
+    return { ok: false, message: 'Equipo no especificado para validar compatibilidad' };
+  }
+
   const reglas = obtenerReglasCompatibilidad(producto);
+
   if (reglas.tipoComponente === 'RAM') {
-    if (!reglas.ramTipos.length || !equipo.ramTipo) {
-      return { ok: false, message: 'La compatibilidad de RAM está incompleta' };
+    const ramEquipo = String(equipo.ramTipo || '').trim().toUpperCase();
+    if (!ramEquipo) {
+      return { ok: false, message: 'El equipo no tiene especificado su tipo de memoria RAM' };
     }
-    return reglas.ramTipos.includes(equipo.ramTipo)
-      ? { ok: true, message: `RAM compatible: ${equipo.ramTipo}` }
-      : { ok: false, message: `RAM incompatible: requiere ${reglas.ramTipos.join(', ')}` };
+
+    const ramTiposProducto = reglas.ramTipos.map((r) => String(r || '').trim().toUpperCase());
+
+    // Si no logramos inferir el tipo de RAM del producto, permitimos con aviso
+    if (!ramTiposProducto.length) {
+      return { ok: true, message: `Memoria compatible con equipos estándar (${ramEquipo})` };
+    }
+
+    const esCompatible = ramTiposProducto.some((ram) => {
+      if (ram === ramEquipo) return true;
+      // Compatibilidad por generación (ej: DDR4 y LPDDR4 en placas compatibles)
+      if (ramEquipo.includes('DDR4') && ram.includes('DDR4')) return true;
+      if (ramEquipo.includes('DDR5') && ram.includes('DDR5')) return true;
+      if (ramEquipo.includes('DDR3') && ram.includes('DDR3')) return true;
+      return false;
+    });
+
+    return esCompatible
+      ? { ok: true, message: `RAM compatible: ${ramEquipo} (acepta ${ramTiposProducto.join(', ')})` }
+      : { ok: false, message: `RAM incompatible: tu equipo usa ${ramEquipo} y el producto requiere ${ramTiposProducto.join(', ')}` };
   }
 
   if (reglas.tipoComponente === 'ALMACENAMIENTO') {
-    if (!reglas.almacenamientoTipos.length || !equipo.almacenamientoTipo) {
-      return { ok: false, message: 'La compatibilidad de almacenamiento está incompleta' };
+    const almacenamientoEquipo = String(equipo.almacenamientoTipo || '').trim();
+    if (!almacenamientoEquipo) {
+      return { ok: false, message: 'El equipo no tiene especificado su tipo de almacenamiento' };
     }
-    const tiposEquipo = tiposAlmacenamiento(equipo.almacenamientoTipo);
+
+    const tiposEquipo = tiposAlmacenamiento(almacenamientoEquipo);
+    // Un equipo de escritorio (PC) siempre dispone de puertos SATA
+    if (equipo.tipo === 'PC' && !tiposEquipo.includes('SATA_25')) {
+      tiposEquipo.push('SATA_25');
+    }
+
     const tiposProducto = normalizarTiposReglaAlmacenamiento(reglas.almacenamientoTipos);
+    if (!tiposProducto.length) {
+      return { ok: true, message: `Almacenamiento compatible: ${almacenamientoEquipo}` };
+    }
+
     const compatible = tiposProducto.some((tipo) => tiposEquipo.includes(tipo));
     return compatible
-      ? { ok: true, message: `Almacenamiento compatible: ${reglas.almacenamientoTipos.join(', ')}` }
-      : { ok: false, message: `Almacenamiento incompatible: requiere ${reglas.almacenamientoTipos.join(', ')}` };
+      ? { ok: true, message: `Almacenamiento compatible: tu equipo soporta ${almacenamientoEquipo}` }
+      : { ok: false, message: `Almacenamiento incompatible: tu equipo soporta ${almacenamientoEquipo}, pero el producto requiere ${reglas.almacenamientoTipos.join(', ')}` };
+  }
+
+  if (reglas.tipoComponente === 'REPUESTO_LAPTOP') {
+    if (equipo.tipo !== 'Laptop') {
+      return { ok: false, message: 'Esta refacción está diseñada exclusivamente para computadoras portátiles (laptops)' };
+    }
+    return { ok: true, message: 'Compatible con laptops de arquitectura compatible' };
   }
 
   return { ok: true, message: 'Producto compatible con cualquier equipo registrado' };
@@ -134,7 +258,17 @@ app.get('/api/productos', async (req, res) => {
       filtro.categoria = req.query.categoria;
     }
 
-    const productos = await Producto.find(filtro).lean();
+    let productos = await Producto.find(filtro).lean();
+    if (!productos || productos.length === 0) {
+      productos = productosIniciales
+        .filter((prod) => !filtro.categoria || prod.categoria === filtro.categoria)
+        .map((prod, idx) => ({
+          ...prod,
+          _id: new mongoose.Types.ObjectId(),
+          stock: prod.stock || 15,
+          activo: true
+        }));
+    }
     const productoIds = productos.map((producto) => producto._id);
     const resumenResenas = await Review.aggregate([
       { $match: { productoId: { $in: productoIds } } },
@@ -365,6 +499,7 @@ app.get('/api/orders', async (req, res) => {
 
 // 4. ENCENDER EL SERVIDOR EN EL PUERTO 3000
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+const HOST = '0.0.0.0';
+app.listen(PORT, HOST, () => {
+  console.log(`Servidor corriendo en el puerto ${PORT} en ${HOST}`);
 });

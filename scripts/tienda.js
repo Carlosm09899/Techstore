@@ -568,42 +568,151 @@ async function validarCarritoFinal() {
     }
 }
 
+function normalizarTexto(texto) {
+    return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+}
+
+function parsearLista(valor) {
+    if (Array.isArray(valor)) {
+        return valor.flatMap((item) => String(item || '').split(/[,\/]/)).map((item) => item.trim()).filter(Boolean);
+    }
+    if (typeof valor === 'string') {
+        return valor.split(/[,\/]/).map((item) => item.trim()).filter(Boolean);
+    }
+    return [];
+}
+
 function obtenerTiposAlmacenamiento(tipo) {
-    const valor = String(tipo || '').toLowerCase();
-    const tipos = [];
-    if (valor.includes('sata') && (valor.includes('2.5') || valor.includes('25'))) tipos.push('SATA_25');
-    if (valor.includes('sata') && valor.includes('m.2')) tipos.push('SATA_M2');
-    if (valor.includes('nvme')) tipos.push('NVME_M2');
-    return tipos;
+    const valor = normalizarTexto(tipo);
+    const tipos = new Set();
+
+    if (valor.includes('nvme') || valor.includes('pcie')) {
+        tipos.add('NVME_M2');
+    }
+    if (valor.includes('sata') && (valor.includes('m.2') || valor.includes('m2'))) {
+        tipos.add('SATA_M2');
+    }
+    if (valor.includes('sata') || valor.includes('2.5') || valor.includes('3.5') || valor.includes('hdd') || valor.includes('disco') || valor.includes('mecanico')) {
+        tipos.add('SATA_25');
+    }
+    if (valor.includes('m.2') || valor.includes('m2')) {
+        tipos.add('NVME_M2');
+        tipos.add('SATA_M2');
+    }
+    if (valor.includes('ssd') && tipos.size === 0) {
+        tipos.add('SATA_25');
+        tipos.add('NVME_M2');
+    }
+
+    return Array.from(tipos);
 }
 
 function normalizarTiposReglaAlmacenamiento(tipos) {
-    return tipos.flatMap((tipo) => obtenerTiposAlmacenamiento(tipo));
+    return parsearLista(tipos).flatMap((tipo) => obtenerTiposAlmacenamiento(tipo));
+}
+
+function resolverReglasProducto(producto) {
+    const reglas = producto.compatibilidad || {};
+    let tipoComponente = String(reglas.tipoComponente || '').toUpperCase().trim();
+    const tipoProd = String(producto.tipo_producto || '').toUpperCase().trim();
+    const catProd = String(producto.categoria || '').toUpperCase();
+    const nombreProd = String(producto.nombre || '').toUpperCase();
+
+    if (!tipoComponente || tipoComponente === 'OTRO') {
+        if (tipoProd === 'RAM' || nombreProd.includes('RAM') || catProd.includes('RAM') || nombreProd.match(/\bDDR[345]\b/)) {
+            tipoComponente = 'RAM';
+        } else if (tipoProd === 'SSD' || tipoProd === 'HDD' || catProd.includes('ALMACENAMIENTO') || nombreProd.includes('SSD') || nombreProd.includes('DISCO DURO') || nombreProd.includes('NVME')) {
+            tipoComponente = 'ALMACENAMIENTO';
+        } else if (tipoProd === 'BATERIA' || catProd.includes('LAPTOP') || nombreProd.includes('BATERIA') || nombreProd.includes('PANTALLA')) {
+            tipoComponente = 'REPUESTO_LAPTOP';
+        } else {
+            tipoComponente = 'OTRO';
+        }
+    }
+
+    let ramTipos = parsearLista(reglas.ramTipos);
+    if (tipoComponente === 'RAM' && ramTipos.length === 0) {
+        const textoBuscar = `${nombreProd} ${String(producto.descripcion_corta || '').toUpperCase()}`;
+        const encontrados = textoBuscar.match(/\b(LPDDR5|LPDDR4|DDR5|DDR4|DDR3)\b/g);
+        if (encontrados) ramTipos = Array.from(new Set(encontrados));
+    }
+
+    let almacenamientoTipos = parsearLista(reglas.almacenamientoTipos);
+    if (tipoComponente === 'ALMACENAMIENTO' && almacenamientoTipos.length === 0) {
+        const textoBuscar = normalizarTexto(`${nombreProd} ${producto.descripcion_corta || ''}`);
+        if (textoBuscar.includes('nvme') || textoBuscar.includes('pcie')) almacenamientoTipos.push('NVMe M.2');
+        else if (textoBuscar.includes('m.2') && textoBuscar.includes('sata')) almacenamientoTipos.push('SATA M.2');
+        else if (textoBuscar.includes('sata') || textoBuscar.includes('disco') || textoBuscar.includes('hdd') || textoBuscar.includes('ssd')) almacenamientoTipos.push('SATA 2.5"');
+    }
+
+    return {
+        tipoComponente,
+        ramTipos,
+        almacenamientoTipos,
+        capacidadMinimaGB: reglas.capacidadMinimaGB || null,
+        capacidadMaximaGB: reglas.capacidadMaximaGB || null
+    };
 }
 
 function validarCompatibilidad(producto, equipo) {
-    const reglas = producto.compatibilidad || {};
+    if (!equipo) {
+        return { estado: 'no-compatible', mensaje: 'Selecciona un equipo para validar compatibilidad.' };
+    }
+
+    const reglas = resolverReglasProducto(producto);
+
     if (reglas.tipoComponente === 'RAM') {
-        const ramTipos = Array.isArray(reglas.ramTipos) ? reglas.ramTipos : [];
-        if (!ramTipos.length) {
-            return { estado: 'incompleta', mensaje: 'Este producto no tiene definido el tipo de RAM requerido.' };
+        const ramEquipo = String(equipo.ramTipo || '').trim().toUpperCase();
+        if (!ramEquipo) {
+            return { estado: 'incompleta', mensaje: 'Tu equipo no tiene configurado el tipo de memoria RAM.' };
         }
-        return ramTipos.includes(equipo.ramTipo)
-            ? { estado: 'compatible', mensaje: `Compatible: tu equipo usa ${equipo.ramTipo} y el producto acepta ${ramTipos.join(', ')}.` }
-            : { estado: 'no-compatible', mensaje: `No compatible: tu equipo usa ${equipo.ramTipo} y el producto requiere ${ramTipos.join(', ')}.` };
+
+        const ramTipos = reglas.ramTipos.map((r) => String(r || '').trim().toUpperCase());
+        if (!ramTipos.length) {
+            return { estado: 'compatible', mensaje: `Compatible: memoria utilizable con tu equipo (${ramEquipo}).` };
+        }
+
+        const esCompatible = ramTipos.some((ram) => {
+            if (ram === ramEquipo) return true;
+            if (ramEquipo.includes('DDR4') && ram.includes('DDR4')) return true;
+            if (ramEquipo.includes('DDR5') && ram.includes('DDR5')) return true;
+            if (ramEquipo.includes('DDR3') && ram.includes('DDR3')) return true;
+            return false;
+        });
+
+        return esCompatible
+            ? { estado: 'compatible', mensaje: `Compatible: tu equipo usa ${ramEquipo} y el componente acepta ${ramTipos.join(', ')}.` }
+            : { estado: 'no-compatible', mensaje: `No compatible: tu equipo usa ${ramEquipo} y el componente requiere ${ramTipos.join(', ')}.` };
     }
 
     if (reglas.tipoComponente === 'ALMACENAMIENTO') {
-        const almacenamientoTipos = Array.isArray(reglas.almacenamientoTipos) ? reglas.almacenamientoTipos : [];
-        if (!almacenamientoTipos.length) {
-            return { estado: 'incompleta', mensaje: 'Este producto no tiene definido el tipo de almacenamiento requerido.' };
+        const almacenamientoEquipo = String(equipo.almacenamientoTipo || '').trim();
+        if (!almacenamientoEquipo) {
+            return { estado: 'incompleta', mensaje: 'Tu equipo no tiene configurado el tipo de almacenamiento soportado.' };
         }
-        const tiposEquipo = obtenerTiposAlmacenamiento(equipo.almacenamientoTipo);
-        const tiposProducto = normalizarTiposReglaAlmacenamiento(almacenamientoTipos);
+
+        const tiposEquipo = obtenerTiposAlmacenamiento(almacenamientoEquipo);
+        // Toda computadora de escritorio (PC) cuenta con puertos SATA para discos 2.5"/3.5"
+        if (equipo.tipo === 'PC' && !tiposEquipo.includes('SATA_25')) {
+            tiposEquipo.push('SATA_25');
+        }
+
+        const tiposProducto = normalizarTiposReglaAlmacenamiento(reglas.almacenamientoTipos);
+        if (!tiposProducto.length) {
+            return { estado: 'compatible', mensaje: `Compatible: tu equipo soporta ${almacenamientoEquipo}.` };
+        }
+
         const compatible = tiposProducto.some((tipo) => tiposEquipo.includes(tipo));
         return compatible
-            ? { estado: 'compatible', mensaje: `Compatible: tu equipo soporta ${equipo.almacenamientoTipo} y el producto requiere ${almacenamientoTipos.join(', ')}.` }
-            : { estado: 'no-compatible', mensaje: `No compatible: tu equipo soporta ${equipo.almacenamientoTipo}, pero el producto requiere ${almacenamientoTipos.join(', ')}.` };
+            ? { estado: 'compatible', mensaje: `Compatible: tu equipo soporta ${almacenamientoEquipo} y coincide con los requerimientos del producto.` }
+            : { estado: 'no-compatible', mensaje: `No compatible: tu equipo soporta ${almacenamientoEquipo}, pero el producto requiere ${reglas.almacenamientoTipos.join(', ')}.` };
+    }
+
+    if (reglas.tipoComponente === 'REPUESTO_LAPTOP') {
+        if (equipo.tipo !== 'Laptop') {
+            return { estado: 'no-compatible', mensaje: 'Esta refacción está diseñada para laptops, no para PC de escritorio.' };
+        }
+        return { estado: 'compatible', mensaje: 'Compatible con laptops de especificación estándar.' };
     }
 
     return {
@@ -612,9 +721,11 @@ function validarCompatibilidad(producto, equipo) {
     };
 }
 
-function badgeCompatibilidad(reglas) {
-    if (reglas.tipoComponente === 'RAM') return `<span class="badge bg-info-subtle text-info-emphasis">RAM ${escaparHTML((reglas.ramTipos || []).join(', ') || 'sin especificar')}</span>`;
-    if (reglas.tipoComponente === 'ALMACENAMIENTO') return `<span class="badge bg-warning-subtle text-warning-emphasis">Almacenamiento ${escaparHTML((reglas.almacenamientoTipos || []).join(', ') || 'sin especificar')}</span>`;
+function badgeCompatibilidad(reglas, productoOpcional) {
+    const info = productoOpcional ? resolverReglasProducto(productoOpcional) : reglas;
+    if (info.tipoComponente === 'RAM') return `<span class="badge bg-info-subtle text-info-emphasis">RAM ${escaparHTML((info.ramTipos || []).join(', ') || 'DDR compatible')}</span>`;
+    if (info.tipoComponente === 'ALMACENAMIENTO') return `<span class="badge bg-warning-subtle text-warning-emphasis">Almacenamiento ${escaparHTML((info.almacenamientoTipos || []).join(', ') || 'SATA / M.2')}</span>`;
+    if (info.tipoComponente === 'REPUESTO_LAPTOP') return '<span class="badge bg-primary-subtle text-primary">Repuesto Laptop</span>';
     return '<span class="badge bg-success-subtle text-success-emphasis">Compatible con cualquier equipo</span>';
 }
 
@@ -1029,7 +1140,7 @@ async function cargarProductos(categoria = '') {
                                 </button>
                             </div>
                             <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
-                            <div class="mb-2">${badgeCompatibilidad(compatibilidad)}</div>
+                            <div class="mb-2">${badgeCompatibilidad(compatibilidad, producto)}</div>
                             <p class="fw-bold fs-5 mt-auto">$${Number(producto.precio || 0).toLocaleString()} MXN</p>
                             <p class="small ${Number(producto.stock) > 0 ? 'text-muted' : 'text-danger'} mb-2">
                                 ${Number(producto.stock) > 0 ? `Disponibles: ${Number(producto.stock)}` : 'Agotado'}
@@ -1494,9 +1605,10 @@ document.getElementById('formContacto').addEventListener('submit', async (e) => 
     }
 });
 
-document.querySelectorAll('[data-toggle-password]').forEach((button) => {
+document.querySelectorAll('[aria-label="Mostrar contraseña"]').forEach((button) => {
     button.addEventListener('click', () => {
-        const passwordInput = document.getElementById(button.dataset.togglePassword);
+        const passwordInput = button.closest('.input-group')?.querySelector('input[type="password"], input[type="text"]');
+        if (!passwordInput) return;
         const icon = button.querySelector('i');
         const isHidden = passwordInput.type === 'password';
 

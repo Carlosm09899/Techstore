@@ -341,7 +341,18 @@ nav.navbar {
 
 .apple-hero-slide-dark {
     background: radial-gradient(circle at 50% 20%, #1e1e24 0%, #000000 70%) !important;
-    color: var(--color-pure-white);
+    color: var(--color-pure-white) !important;
+}
+
+.apple-hero-slide-dark h1,
+.apple-hero-slide-dark .apple-hero-title {
+    color: #ffffff !important;
+    text-shadow: 0 2px 20px rgba(255, 255, 255, 0.2);
+}
+
+.apple-hero-slide-dark .apple-hero-subhead {
+    color: #e5e5ea !important;
+    opacity: 0.95;
 }
 
 .apple-hero-slide-wash {
