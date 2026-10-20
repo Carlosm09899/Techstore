@@ -8,6 +8,7 @@ dotenv.config();
 const authRoutes = require('./routes/authRoutes');
 const User = require('./models/user');
 const Order = require('./models/order');
+const Review = require('./models/review');
 
 const app = express();
 app.use(express.static(__dirname));
@@ -134,13 +135,90 @@ app.get('/api/productos', async (req, res) => {
     }
 
     const productos = await Producto.find(filtro).lean();
+    const productoIds = productos.map((producto) => producto._id);
+    const resumenResenas = await Review.aggregate([
+      { $match: { productoId: { $in: productoIds } } },
+      {
+        $group: {
+          _id: '$productoId',
+          promedio: { $avg: '$estrellas' },
+          total: { $sum: 1 }
+        }
+      }
+    ]);
+    const resumenPorProducto = new Map(resumenResenas.map((resumen) => [
+      String(resumen._id),
+      { promedio: Number(resumen.promedio.toFixed(1)), total: resumen.total }
+    ]));
     const productosConCompatibilidad = productos.map((producto) => ({
       ...producto,
-      compatibilidad: obtenerReglasCompatibilidad(producto)
+      compatibilidad: obtenerReglasCompatibilidad(producto),
+      resenas: resumenPorProducto.get(String(producto._id)) || { promedio: 0, total: 0 }
     }));
     res.json(productosConCompatibilidad); // Los devuelve en formato JSON
   } catch (error) {
     res.status(500).json({ error: "Error al obtener los productos" });
+  }
+});
+
+app.get('/api/productos/:productoId/resenas', async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.productoId)) {
+      return res.status(400).json({ message: 'El producto no es válido' });
+    }
+    const resenas = await Review.find({ productoId: req.params.productoId })
+      .sort({ createdAt: -1 })
+      .select('nombreUsuario estrellas comentario createdAt')
+      .lean();
+    res.json({ resenas });
+  } catch (error) {
+    console.error('Error al obtener reseñas:', error.message);
+    res.status(500).json({ message: 'No se pudieron obtener las reseñas' });
+  }
+});
+
+app.post('/api/productos/:productoId/resenas', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    if (!mongoose.Types.ObjectId.isValid(req.params.productoId)) {
+      return res.status(400).json({ message: 'El producto no es válido' });
+    }
+
+    const estrellas = Number(req.body.estrellas);
+    const comentario = String(req.body.comentario || '').trim();
+    if (!Number.isInteger(estrellas) || estrellas < 1 || estrellas > 5 || !comentario || comentario.length > 500) {
+      return res.status(400).json({ message: 'Selecciona de 1 a 5 estrellas y escribe una reseña de hasta 500 caracteres' });
+    }
+
+    const productoId = new mongoose.Types.ObjectId(req.params.productoId);
+    const compra = await Order.findOne({
+      userId,
+      'items.productoId': productoId,
+      estado: { $ne: 'Cancelada' }
+    }).sort({ createdAt: -1 }).lean();
+    if (!compra) {
+      return res.status(403).json({ message: 'Solo puedes reseñar productos que hayas comprado' });
+    }
+
+    const usuario = await User.findById(userId).select('name').lean();
+    if (!usuario) return res.status(401).json({ message: 'La sesión no es válida' });
+
+    const resena = await Review.create({
+      productoId,
+      userId,
+      orderId: compra._id,
+      nombreUsuario: usuario.name,
+      estrellas,
+      comentario
+    });
+    res.status(201).json({ message: 'Reseña publicada correctamente', resena });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ message: 'Ya publicaste una reseña para este producto' });
+    }
+    console.error('Error al crear reseña:', error.message);
+    res.status(500).json({ message: 'No se pudo publicar la reseña' });
   }
 });
 

@@ -501,6 +501,16 @@
                             </div>
                         </div>
 
+                        <div class="checkout-terms">
+                            <div class="form-check">
+                                <input id="aceptaTerminos" class="form-check-input" type="checkbox" required>
+                                <label class="form-check-label small" for="aceptaTerminos">
+                                    Acepto los <button id="btnAbrirTerminos" type="button" class="terms-link">Términos y condiciones</button> de compra.
+                                </label>
+                            </div>
+                            <div id="msgTerminos" class="small text-danger mt-2 d-none">Debes aceptar los términos y condiciones para continuar con el pago.</div>
+                        </div>
+
                         <div id="msgCheckout" class="small text-center fw-medium mt-3"></div>
                     </div>
                     
@@ -508,6 +518,56 @@
                         <span id="checkoutTotal" class="fw-bold fs-4 text-dark">Total: $0 MXN</span>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL TÉRMINOS Y CONDICIONES -->
+    <div class="modal fade" id="modalTerminos" tabindex="-1" aria-labelledby="tituloTerminos" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <div>
+                        <h5 id="tituloTerminos" class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Términos y condiciones de compra</h5>
+                        <div class="small opacity-75 mt-1">Última actualización: octubre de 2026</div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar términos y condiciones"></button>
+                </div>
+                <div class="modal-body terms-content">
+                    <p>Bienvenido al sistema de compras de <strong>E-Shop DIY</strong> (en adelante, “la Tienda”). Estas condiciones regulan el uso del carrito de compras y las transacciones realizadas en nuestro sitio web, de conformidad con la legislación mexicana aplicable en materia de protección al consumidor.</p>
+
+                    <h6>1. Precios, impuestos y disponibilidad</h6>
+                    <ul>
+                        <li>Todos los precios del catálogo y del carrito están expresados en <strong>pesos mexicanos (MXN)</strong> e incluyen el IVA, cuando resulte aplicable.</li>
+                        <li>Los artículos agregados al carrito no están reservados hasta que la compra se confirme.</li>
+                        <li>E-Shop DIY procura mantener el inventario actualizado. Si después de una compra un producto no estuviera disponible, se notificará al cliente para ofrecerle un reembolso total o un cambio por un artículo de características similares, según corresponda.</li>
+                    </ul>
+
+                    <h6>2. Métodos de pago y seguridad</h6>
+                    <ul>
+                        <li>Los pagos se gestionan mediante los métodos disponibles en el checkout. En esta versión, las opciones de tarjeta y PayPal son simuladas para fines del proyecto.</li>
+                        <li>La Tienda no solicita ni almacena directamente datos completos de tarjetas bancarias.</li>
+                        <li>Al confirmar la compra, el cliente declara que los fondos utilizados son de procedencia lícita y que está autorizado para utilizar el método de pago seleccionado.</li>
+                    </ul>
+
+                    <h6>3. Envíos y entregas</h6>
+                    <ul>
+                        <li>Los costos de envío, cuando apliquen, se mostrarán de forma transparente antes de finalizar la transacción.</li>
+                        <li>El tiempo estimado de entrega será informado cuando esa información esté disponible. E-Shop DIY procurará despachar los componentes en tiempo y forma mediante servicios de paquetería regulados.</li>
+                    </ul>
+
+                    <h6>4. Certificación “0 Riesgo” y devoluciones</h6>
+                    <p>Sin perjuicio de los derechos irrenunciables que reconozca la legislación aplicable, si el componente adquirido no resulta compatible con el equipo del usuario conforme a nuestra política “0 Riesgo”, el cliente podrá solicitar la devolución dentro de los <strong>5 días hábiles</strong> posteriores a la entrega.</p>
+                    <p>Para gestionar la devolución, el componente deberá conservar sus empaques originales e incluir las herramientas y manuales entregados, sin daños derivados de una mala manipulación.</p>
+
+                    <h6>5. Atención y solución de controversias</h6>
+                    <p>Para cualquier reclamación, duda o aclaración, el cliente puede comunicarse al correo <strong>techstoreoficial693@gmail.com</strong>. Las partes procurarán resolver cualquier controversia por esa vía y, cuando corresponda, podrán acudir a la Procuraduría Federal del Consumidor (PROFECO) y a las autoridades competentes del Estado de Hidalgo.</p>
+
+                    <div class="terms-notice"><i class="bi bi-info-circle me-2"></i>Estos términos no sustituyen los derechos que la legislación mexicana reconoce a las personas consumidoras.</div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Entendido</button>
+                </div>
             </div>
         </div>
     </div>
@@ -523,6 +583,41 @@
                 <div class="modal-body p-4">
                     <div id="listaCompras">
                         <p class="text-muted text-center mb-0">Cargando compras...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE RESEÑAS -->
+    <div class="modal fade" id="modalResenas" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 shadow border-0">
+                <div class="modal-header bg-primary text-white rounded-top-4">
+                    <div>
+                        <h5 id="tituloResenas" class="modal-title fw-bold"><i class="bi bi-star me-2"></i>Reseñas del producto</h5>
+                        <div id="resumenResenas" class="small opacity-75 mt-1"></div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="listaResenas">
+                        <p class="text-muted text-center mb-0">Cargando reseñas...</p>
+                    </div>
+                    <div id="formularioResena" class="review-form d-none mt-4">
+                        <div class="review-form-title"><i class="bi bi-pencil-square me-2"></i>Comparte tu experiencia</div>
+                        <div class="review-stars-input my-3" role="radiogroup" aria-label="Calificación">
+                            <button type="button" class="review-star" data-estrellas="1" aria-label="1 estrella"><i class="bi bi-star"></i></button>
+                            <button type="button" class="review-star" data-estrellas="2" aria-label="2 estrellas"><i class="bi bi-star"></i></button>
+                            <button type="button" class="review-star" data-estrellas="3" aria-label="3 estrellas"><i class="bi bi-star"></i></button>
+                            <button type="button" class="review-star" data-estrellas="4" aria-label="4 estrellas"><i class="bi bi-star"></i></button>
+                            <button type="button" class="review-star" data-estrellas="5" aria-label="5 estrellas"><i class="bi bi-star"></i></button>
+                        </div>
+                        <textarea id="comentarioResena" class="form-control rounded-3" rows="3" maxlength="500" placeholder="¿Qué te pareció este producto?" required></textarea>
+                        <div id="msgResena" class="small fw-medium mt-2"></div>
+                        <button id="btnPublicarResena" type="button" class="btn btn-primary rounded-pill mt-2">
+                            <i class="bi bi-send me-2"></i>Publicar reseña
+                        </button>
                     </div>
                 </div>
             </div>

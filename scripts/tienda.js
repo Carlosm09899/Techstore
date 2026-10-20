@@ -75,6 +75,66 @@ function claseEstadoOrden(estado) {
     return clases[estado] || 'bg-secondary';
 }
 
+function estrellasHTML(promedio, mostrarNumero = true) {
+    const valor = Math.max(0, Math.min(5, Number(promedio) || 0));
+    const estrellas = Array.from({ length: 5 }, (_, indice) => {
+        const icono = valor >= indice + 1 ? 'bi-star-fill' : valor >= indice + 0.5 ? 'bi-star-half' : 'bi-star';
+        return `<i class="bi ${icono}"></i>`;
+    }).join('');
+    return `<span class="product-stars" aria-label="${valor.toFixed(1)} de 5 estrellas">${estrellas}</span>${mostrarNumero ? `<span class="review-average">${valor ? valor.toFixed(1) : 'Nuevo'}</span>` : ''}`;
+}
+
+let productoResenasActual = null;
+let estrellasResenaSeleccionadas = 0;
+
+async function abrirResenas(productoId, nombreProducto, permitirPublicar = false) {
+    productoResenasActual = productoId;
+    estrellasResenaSeleccionadas = 0;
+    document.getElementById('tituloResenas').innerHTML = `<i class="bi bi-star me-2"></i>${escaparHTML(nombreProducto)}`;
+    document.getElementById('resumenResenas').textContent = '';
+    document.getElementById('listaResenas').innerHTML = '<p class="text-muted text-center mb-0">Cargando reseñas...</p>';
+    document.getElementById('formularioResena').classList.toggle('d-none', !permitirPublicar);
+    document.getElementById('comentarioResena').value = '';
+    document.getElementById('msgResena').textContent = '';
+    actualizarEstrellasResena();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalResenas')).show();
+
+    try {
+        const respuesta = await fetch(`/api/productos/${encodeURIComponent(productoId)}/resenas`);
+        const data = await respuesta.json();
+        if (!respuesta.ok) throw new Error(data.message || 'No se pudieron cargar las reseñas');
+        const resenas = data.resenas || [];
+        const promedio = resenas.length
+            ? resenas.reduce((suma, resena) => suma + Number(resena.estrellas), 0) / resenas.length
+            : 0;
+        document.getElementById('resumenResenas').innerHTML = `${estrellasHTML(promedio, false)} <span class="ms-2">${resenas.length} ${resenas.length === 1 ? 'reseña' : 'reseñas'}</span>`;
+        document.getElementById('listaResenas').innerHTML = resenas.length
+            ? resenas.map((resena) => `
+                <article class="review-item">
+                    <div class="d-flex justify-content-between gap-3">
+                        <div>
+                            <div class="fw-bold">${escaparHTML(resena.nombreUsuario)}</div>
+                            <div class="review-stars">${estrellasHTML(resena.estrellas, false)}</div>
+                        </div>
+                        <time class="small text-muted">${escaparHTML(formatoFecha(resena.createdAt))}</time>
+                    </div>
+                    <p class="mb-0 mt-2 text-muted">${escaparHTML(resena.comentario)}</p>
+                </article>
+            `).join('')
+            : '<div class="text-center text-muted py-4"><i class="bi bi-chat-square-text fs-2 d-block mb-2"></i>Aún no hay reseñas. Sé el primero en compartir tu experiencia.</div>';
+    } catch (error) {
+        document.getElementById('listaResenas').innerHTML = `<p class="text-danger text-center mb-0">${escaparHTML(error.message)}</p>`;
+    }
+}
+
+function actualizarEstrellasResena() {
+    document.querySelectorAll('.review-star').forEach((boton) => {
+        const activo = Number(boton.dataset.estrellas) <= estrellasResenaSeleccionadas;
+        boton.classList.toggle('active', activo);
+        boton.querySelector('i').className = `bi ${activo ? 'bi-star-fill' : 'bi-star'}`;
+    });
+}
+
 function mostrarCompras(orders) {
     const lista = document.getElementById('listaCompras');
     lista.innerHTML = '';
@@ -99,7 +159,12 @@ function mostrarCompras(orders) {
                         <div class="small text-muted">Equipo: ${escaparHTML(item.equipoNombre)}</div>
                         <div class="small text-muted">Compatibilidad: ${escaparHTML(item.compatibilidad)}</div>
                     </div>
-                    <div class="text-end fw-bold">$${Number(item.subtotal).toLocaleString()} MXN</div>
+                    <div class="text-end">
+                        <div class="fw-bold">$${Number(item.subtotal).toLocaleString()} MXN</div>
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill mt-2 btn-escribir-resena" data-producto-id="${escaparHTML(item.productoId)}" data-producto-nombre="${escaparHTML(item.nombre)}">
+                            <i class="bi bi-star me-1"></i>Calificar producto
+                        </button>
+                    </div>
                 </div>
             </div>
         `).join('');
@@ -122,6 +187,9 @@ function mostrarCompras(orders) {
                 </div>
             </div>
         `);
+    });
+    lista.querySelectorAll('.btn-escribir-resena').forEach((boton) => {
+        boton.addEventListener('click', () => abrirResenas(boton.dataset.productoId, boton.dataset.productoNombre, true));
     });
 }
 
@@ -954,6 +1022,12 @@ async function cargarProductos(categoria = '') {
                         <div class="card-body p-0 d-flex flex-column">
                             <h5 class="card-title fw-bold">${escaparHTML(producto.nombre)}</h5>
                             <p class="card-text text-muted small">${escaparHTML(producto.descripcion_corta || 'Sin descripción')}</p>
+                            <div class="product-rating mb-2">
+                                ${estrellasHTML(producto.resenas?.promedio || 0)}
+                                <button type="button" class="btn btn-link btn-sm p-0 ms-2 btn-ver-resenas" data-producto-id="${escaparHTML(String(producto._id))}" data-producto-nombre="${escaparHTML(producto.nombre)}">
+                                    ${Number(producto.resenas?.total || 0)} ${Number(producto.resenas?.total || 0) === 1 ? 'reseña' : 'reseñas'}
+                                </button>
+                            </div>
                             <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
                             <div class="mb-2">${badgeCompatibilidad(compatibilidad)}</div>
                             <p class="fw-bold fs-5 mt-auto">$${Number(producto.precio || 0).toLocaleString()} MXN</p>
@@ -971,10 +1045,57 @@ async function cargarProductos(categoria = '') {
         contenedor.querySelectorAll('.btn-validar-compatibilidad').forEach((boton) => {
             boton.addEventListener('click', () => abrirModalCompatibilidad(boton.dataset.productoId));
         });
+        contenedor.querySelectorAll('.btn-ver-resenas').forEach((boton) => {
+            boton.addEventListener('click', () => abrirResenas(boton.dataset.productoId, boton.dataset.productoNombre));
+        });
     } catch (error) {
         console.error("Error al conectar con el backend de productos:", error);
     }
+
 }
+
+document.querySelectorAll('.review-star').forEach((boton) => {
+    boton.addEventListener('click', () => {
+        estrellasResenaSeleccionadas = Number(boton.dataset.estrellas);
+        actualizarEstrellasResena();
+    });
+});
+
+document.getElementById('btnPublicarResena').addEventListener('click', async () => {
+    const mensaje = document.getElementById('msgResena');
+    const comentario = document.getElementById('comentarioResena').value.trim();
+    if (!estrellasResenaSeleccionadas || !comentario) {
+        mensaje.textContent = 'Selecciona una calificación y escribe un comentario.';
+        mensaje.className = 'small fw-medium mt-2 text-danger';
+        return;
+    }
+
+    const boton = document.getElementById('btnPublicarResena');
+    boton.disabled = true;
+    mensaje.textContent = 'Publicando reseña...';
+    mensaje.className = 'small fw-medium mt-2 text-info';
+    try {
+        const respuesta = await fetch(`/api/productos/${encodeURIComponent(productoResenasActual)}/resenas`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ estrellas: estrellasResenaSeleccionadas, comentario })
+        });
+        const data = await respuesta.json();
+        if (!respuesta.ok) throw new Error(data.message || 'No se pudo publicar la reseña');
+        mensaje.textContent = data.message;
+        mensaje.className = 'small fw-medium mt-2 text-success';
+        document.getElementById('formularioResena').classList.add('d-none');
+        const categoria = document.querySelector('.filtro-categoria.active')?.dataset.categoria || '';
+        await cargarProductos(categoria);
+        setTimeout(() => abrirResenas(productoResenasActual, document.getElementById('tituloResenas').textContent, false), 500);
+    } catch (error) {
+        mensaje.textContent = error.message;
+        mensaje.className = 'small fw-medium mt-2 text-danger';
+    } finally {
+        boton.disabled = false;
+    }
+});
 
 document.querySelectorAll('.filtro-categoria').forEach((boton) => {
     boton.addEventListener('click', () => {
@@ -1006,6 +1127,24 @@ document.getElementById('direccionGuardada').addEventListener('change', (event) 
     if (direccion) llenarDatosDireccion(direccion);
     else document.getElementById('formCheckout').reset();
 });
+
+document.getElementById('btnAbrirTerminos').addEventListener('click', () => {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalTerminos')).show();
+});
+
+document.getElementById('aceptaTerminos').addEventListener('change', validarAceptacionTerminos);
+
+function validarAceptacionTerminos() {
+    const checkbox = document.getElementById('aceptaTerminos');
+    const mensaje = document.getElementById('msgTerminos');
+    if (checkbox.checked) {
+        mensaje.classList.add('d-none');
+        return true;
+    }
+    mensaje.classList.remove('d-none');
+    checkbox.focus();
+    return false;
+}
 
 function generarCodigoPaynet(total) {
     const codigo = `PAYNET-${Date.now().toString().slice(-10)}-${Math.round(total).toString().padStart(6, '0')}`;
@@ -1242,16 +1381,19 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
 }
 
 document.getElementById('btnPagarPaynet').addEventListener('click', async () => {
+    if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada('Paynet', 'btnPagarPaynet');
 });
 
 document.getElementById('btnPagarTarjeta').addEventListener('click', async () => {
+    if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada('Tarjeta', 'btnPagarTarjeta');
 });
 
 document.getElementById('btnPagarPayPal').addEventListener('click', async () => {
+    if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada('PayPal', 'btnPagarPayPal');
 });
