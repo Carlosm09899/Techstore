@@ -14,6 +14,7 @@ let productoCompatibilidadActual = null;
 let resultadoCompatibilidadActual = null;
 let carrito = [];
 let ultimaCompraComprobante = null;
+let compraConfirmadaCheckout = false;
 
 function mostrarUsuario(user) {
     sesionUsuario = user;
@@ -476,6 +477,7 @@ function renderizarCarrito() {
 }
 
 function prepararCheckout() {
+    compraConfirmadaCheckout = false;
     const resumen = document.getElementById('resumenCheckout');
     const total = carrito.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
     resumen.innerHTML = carrito.map((item) => `
@@ -1497,23 +1499,17 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
                 mensaje.className = 'small text-center fw-medium mt-3 text-danger';
             }
         });
-        carrito = [];
-        guardarCarrito();
-        actualizarIndicadorCarrito();
-        renderizarCarrito();
         if (metodoPago === 'Paynet') generarCodigoPaynet(data.total);
         else limpiarCodigoPaynet();
         document.getElementById('metodoPago').value = 'Paynet';
+        compraConfirmadaCheckout = true;
         ['btnPagarPaynet', 'btnPagarTarjeta', 'btnPagarPayPal', 'btnConfirmarPago']
             .forEach((id) => { document.getElementById(id).disabled = true; });
-        setTimeout(() => {
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCheckout')).hide();
-        }, 1200);
     } catch (error) {
         mensaje.textContent = error.message;
         mensaje.className = 'small text-center fw-medium mt-3 text-danger';
     } finally {
-        if (carrito.length) boton.disabled = false;
+        if (!compraConfirmadaCheckout && carrito.length) boton.disabled = false;
     }
 }
 
@@ -1554,6 +1550,15 @@ document.getElementById('btnConfirmarPago').addEventListener('click', async () =
     if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada(metodoPago, idBoton);
+});
+
+document.getElementById('modalCheckout').addEventListener('hidden.bs.modal', () => {
+    if (!compraConfirmadaCheckout) return;
+    carrito = [];
+    guardarCarrito();
+    actualizarIndicadorCarrito();
+    renderizarCarrito();
+    compraConfirmadaCheckout = false;
 });
 
 
