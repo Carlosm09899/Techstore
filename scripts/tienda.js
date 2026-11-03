@@ -1517,25 +1517,29 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
     }
 }
 
-document.getElementById('btnPagarPaynet').addEventListener('click', async () => {
-    document.getElementById('metodoPago').value = 'Paynet';
-    if (!validarAceptacionTerminos()) return;
-    if (!document.getElementById('formCheckout').reportValidity()) return;
-    await confirmarCompraSimulada('Paynet', 'btnPagarPaynet');
+function seleccionarMetodoPago(metodoPago, idBoton) {
+    document.getElementById('metodoPago').value = metodoPago;
+    document.querySelectorAll('.payment-option').forEach((boton) => {
+        const seleccionado = boton.id === idBoton;
+        boton.classList.toggle('selected', seleccionado);
+        boton.setAttribute('aria-pressed', String(seleccionado));
+    });
+}
+
+document.getElementById('btnPagarPaynet').addEventListener('click', () => {
+    seleccionarMetodoPago('Paynet', 'btnPagarPaynet');
+    const total = carrito.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
+    generarCodigoPaynet(total);
 });
 
-document.getElementById('btnPagarTarjeta').addEventListener('click', async () => {
-    document.getElementById('metodoPago').value = 'Tarjeta';
-    if (!validarAceptacionTerminos()) return;
-    if (!document.getElementById('formCheckout').reportValidity()) return;
-    await confirmarCompraSimulada('Tarjeta', 'btnPagarTarjeta');
+document.getElementById('btnPagarTarjeta').addEventListener('click', () => {
+    seleccionarMetodoPago('Tarjeta', 'btnPagarTarjeta');
+    limpiarCodigoPaynet();
 });
 
-document.getElementById('btnPagarPayPal').addEventListener('click', async () => {
-    document.getElementById('metodoPago').value = 'PayPal';
-    if (!validarAceptacionTerminos()) return;
-    if (!document.getElementById('formCheckout').reportValidity()) return;
-    await confirmarCompraSimulada('PayPal', 'btnPagarPayPal');
+document.getElementById('btnPagarPayPal').addEventListener('click', () => {
+    seleccionarMetodoPago('PayPal', 'btnPagarPayPal');
+    limpiarCodigoPaynet();
 });
 
 document.getElementById('btnConfirmarPago').addEventListener('click', async () => {
@@ -1546,6 +1550,7 @@ document.getElementById('btnConfirmarPago').addEventListener('click', async () =
         PayPal: 'btnPagarPayPal'
     };
     const idBoton = botonesPorMetodo[metodoPago] || botonesPorMetodo.Paynet;
+    seleccionarMetodoPago(metodoPago, idBoton);
     if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada(metodoPago, idBoton);

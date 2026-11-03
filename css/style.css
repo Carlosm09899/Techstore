@@ -1059,6 +1059,11 @@ footer hr {
     box-shadow: 0 4px 12px rgba(0, 113, 227, 0.08);
 }
 
+.payment-option.selected {
+    border-color: var(--color-iris-blue);
+    box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.16);
+}
+
 .payment-icon {
     display: grid;
     place-items: center;
