@@ -193,6 +193,8 @@ nav.navbar {
     padding: 2px 5px;
     background-color: var(--color-iris-blue) !important;
     border: 2px solid var(--color-pure-white);
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -942,11 +944,13 @@ footer hr {
 /* Checkout Specific Styles */
 #modalCheckout .modal-dialog {
     max-width: 760px;
+    height: calc(100vh - 2rem);
     max-height: calc(100vh - 2rem);
 }
 
 #modalCheckout .modal-content {
     background-color: var(--color-fog-white) !important;
+    height: 100%;
     max-height: calc(100vh - 2rem);
 }
 
@@ -954,7 +958,16 @@ footer hr {
     background: var(--color-pure-white) !important;
 }
 
+#modalCheckout form {
+    display: flex;
+    min-height: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+}
+
 #modalCheckout .modal-body {
+    min-height: 0;
+    flex: 1 1 auto;
     padding: 20px 24px !important;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -1357,6 +1370,7 @@ footer hr {
 
     #modalCheckout .modal-content {
         min-height: 100vh;
+        height: 100vh;
         max-height: 100vh;
         border-radius: 0 !important;
     }
