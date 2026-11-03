@@ -487,6 +487,7 @@ function prepararCheckout() {
         </div>
     `).join('');
     document.getElementById('checkoutTotal').textContent = `Total: $${total.toLocaleString()} MXN`;
+    seleccionarMetodoPago('Paynet', 'btnPagarPaynet');
     document.getElementById('msgCheckout').textContent = '';
     document.getElementById('msgCheckout').className = 'small fw-medium mt-3';
     limpiarCodigoPaynet();
@@ -1547,6 +1548,12 @@ document.getElementById('btnConfirmarPago').addEventListener('click', async () =
     };
     const idBoton = botonesPorMetodo[metodoPago] || botonesPorMetodo.Paynet;
     seleccionarMetodoPago(metodoPago, idBoton);
+    if (metodoPago === 'Paynet') {
+        const total = carrito.reduce((suma, item) => suma + (item.precio * item.cantidad), 0);
+        generarCodigoPaynet(total);
+    } else {
+        limpiarCodigoPaynet();
+    }
     if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada(metodoPago, idBoton);
