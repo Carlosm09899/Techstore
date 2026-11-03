@@ -75,6 +75,7 @@ body {
     letter-spacing: var(--tracking-body);
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6, .display-1, .display-2, .display-3, .display-4, .display-5 {
@@ -164,6 +165,20 @@ nav.navbar {
     justify-content: center;
     border-radius: var(--radius-pill);
     transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+#cuentaUsuario.account-logged-in {
+    width: auto;
+    max-width: 170px;
+    justify-content: flex-start;
+    white-space: nowrap;
+}
+
+#cuentaUsuario .account-name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .nav-action-btn:hover,
@@ -927,10 +942,12 @@ footer hr {
 /* Checkout Specific Styles */
 #modalCheckout .modal-dialog {
     max-width: 760px;
+    max-height: calc(100vh - 2rem);
 }
 
 #modalCheckout .modal-content {
     background-color: var(--color-fog-white) !important;
+    max-height: calc(100vh - 2rem);
 }
 
 #modalCheckout .modal-header {
@@ -939,6 +956,8 @@ footer hr {
 
 #modalCheckout .modal-body {
     padding: 20px 24px !important;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 #resumenCheckout {
@@ -1000,6 +1019,25 @@ footer hr {
     text-align: left;
     transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     cursor: pointer;
+}
+
+.payment-option > span:not(.payment-icon) {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 auto;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.25;
+}
+
+.payment-option strong,
+.payment-option small {
+    display: block;
+}
+
+.payment-option small {
+    color: var(--color-pewter);
+    font-size: 12px;
 }
 
 .payment-option:hover {
@@ -1147,9 +1185,204 @@ footer hr {
 
 /* Responsive Queries */
 @media (max-width: 768px) {
+    .navbar.apple-navbar,
+    nav.navbar {
+        height: auto;
+        min-height: 48px;
+    }
+
+    .navbar .container {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .navbar-collapse {
+        padding: 8px 0 12px;
+    }
+
+    .navbar-nav {
+        gap: 0 !important;
+    }
+
+    .navbar-nav .nav-link {
+        padding: 9px 10px !important;
+    }
+
+    .navbar .d-flex.gap-2 {
+        gap: 4px !important;
+    }
+
     .apple-hero-slide {
         min-height: 55vh;
         padding: 50px 16px;
+    }
+
+    .apple-hero-title {
+        font-size: clamp(32px, 9vw, 44px);
+        line-height: 1.08;
+    }
+
+    .apple-hero-subhead {
+        font-size: 17px;
+        line-height: 1.35;
+    }
+
+    #catalogo {
+        padding-top: 40px;
+    }
+
+    .section-headline {
+        font-size: clamp(28px, 8vw, 36px);
+        line-height: 1.15;
+    }
+
+    .section-subhead {
+        font-size: 15px;
+        line-height: 1.4;
+        margin-bottom: 22px;
+    }
+
+    .category-pill-container {
+        max-width: 100%;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-radius: 14px;
+        padding: 6px;
+    }
+
+    .category-pill-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .filtro-categoria {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        padding: 8px 14px !important;
+    }
+
+    .product-section-wrapper {
+        padding: 28px 12px 56px;
+    }
+
+    #contenedor-productos {
+        width: auto;
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    #contenedor-productos > .col {
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+
+    #contenedor-productos .card {
+        padding: 18px !important;
+    }
+
+    .apple-map-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 5px;
+        padding: 16px;
+    }
+
+    #contenedorMapa {
+        height: 360px;
+    }
+
+    .leaflet-routing-container {
+        max-width: calc(100vw - 56px);
+        max-height: 220px;
+        font-size: 12px !important;
+    }
+
+    #plan-canje {
+        padding-bottom: 40px;
+    }
+
+    .apple-dark-band {
+        border-radius: 18px !important;
+        padding: 48px 20px !important;
+    }
+
+    .apple-dark-band p.lead {
+        font-size: 17px;
+        line-height: 1.4;
+    }
+
+    footer {
+        padding: 32px 0 24px;
+    }
+
+    footer .container {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .whatsapp-float-btn {
+        width: 48px;
+        height: 48px;
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .modal-dialog {
+        margin: 10px;
+    }
+
+    .modal-content {
+        border-radius: 18px !important;
+    }
+
+    .modal-header,
+    .modal-body {
+        padding: 16px !important;
+    }
+
+    .modal-footer {
+        padding: 12px 16px !important;
+    }
+
+    .modal-header .modal-title {
+        font-size: 16px !important;
+    }
+
+    #modalCheckout .modal-dialog {
+        margin: 0;
+        min-height: 100%;
+        height: 100%;
+    }
+
+    #modalCheckout .modal-content {
+        min-height: 100vh;
+        max-height: 100vh;
+        border-radius: 0 !important;
+    }
+
+    #modalCheckout .modal-body {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    #modalCheckout .modal-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+    }
+
+    .payment-option {
+        min-height: 64px;
+        padding: 9px 10px;
+    }
+
+    #cuentaUsuario.account-logged-in {
+        max-width: 112px;
+    }
+
+    .review-form {
+        padding: 14px;
     }
     
     .payment-options {
@@ -1163,6 +1396,45 @@ footer hr {
     
     .apple-button-pair .btn {
         width: 100%;
+    }
+}
+
+@media (max-width: 400px) {
+    .navbar-brand {
+        font-size: 15px !important;
+    }
+
+    .navbar-brand i {
+        margin-right: 4px !important;
+    }
+
+    .nav-action-btn,
+    .navbar button.btn-link {
+        width: 32px;
+        height: 32px;
+    }
+
+    .apple-promo-ribbon {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .apple-hero-slide {
+        min-height: 54vh;
+        padding-top: 42px;
+        padding-bottom: 42px;
+    }
+
+    .apple-tag {
+        font-size: 10px;
+        padding: 5px 12px;
+    }
+
+    .btn-apple-primary,
+    .btn-apple-outline,
+    .btn-ghost-dark,
+    .btn-apple-white {
+        padding: 10px 16px;
     }
 }
 

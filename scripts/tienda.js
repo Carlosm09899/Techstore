@@ -17,7 +17,8 @@ let ultimaCompraComprobante = null;
 
 function mostrarUsuario(user) {
     sesionUsuario = user;
-    cuentaUsuario.innerHTML = `<i class="bi bi-person-check me-1"></i>${escaparHTML(user.name)}`;
+    cuentaUsuario.innerHTML = `<i class="bi bi-person-check me-1"></i><span class="account-name">${escaparHTML(user.name)}</span>`;
+    cuentaUsuario.classList.add('account-logged-in');
     cuentaUsuario.removeAttribute('data-bs-target');
     cuentaUsuario.setAttribute('data-bs-toggle', 'dropdown');
     cuentaUsuario.title = `Cuenta de ${user.name}`;
@@ -36,6 +37,7 @@ function mostrarCuentaInicial() {
     equiposUsuario = [];
     carrito = [];
     cuentaUsuario.innerHTML = '<i class="bi bi-person"></i>';
+    cuentaUsuario.classList.remove('account-logged-in');
     cuentaUsuario.setAttribute('data-bs-toggle', 'modal');
     cuentaUsuario.setAttribute('data-bs-target', '#modalAuth');
     cuentaUsuario.title = 'Mi Cuenta';
