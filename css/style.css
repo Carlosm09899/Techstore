@@ -1092,6 +1092,20 @@ footer hr {
     background: var(--color-pure-white);
 }
 
+.paynet-qr-visual {
+    display: flex;
+    min-height: 192px;
+    align-items: center;
+    justify-content: center;
+}
+
+.paynet-qr-visual img,
+.paynet-qr-visual canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
 .checkout-terms {
     margin-top: 16px;
     padding: 12px 14px;
@@ -1378,6 +1392,15 @@ footer hr {
     #modalCheckout .modal-body {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+    }
+
+    #modalCheckout .modal-footer {
+        flex-shrink: 0;
+        gap: 16px;
+    }
+
+    #modalCheckout #btnConfirmarPago {
+        min-width: 150px;
     }
 
     #modalCheckout .modal-footer {

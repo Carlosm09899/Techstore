@@ -1266,13 +1266,18 @@ function generarCodigoPaynet(total) {
     document.getElementById('paynetBarcodeValue').textContent = codigo;
     visual.replaceChildren();
 
-    for (const caracter of codigo) {
-        const barra = document.createElement('span');
-        barra.style.width = `${caracter.charCodeAt(0) % 4 + 1}px`;
-        barra.style.height = `${48 + caracter.charCodeAt(0) % 32}px`;
-        barra.className = 'bg-dark d-inline-block';
-        visual.appendChild(barra);
+    if (typeof QRCode !== 'function') {
+        throw new Error('No se pudo cargar el generador del código QR. Recarga la página e inténtalo de nuevo.');
     }
+
+    new QRCode(visual, {
+        text: codigo,
+        width: 160,
+        height: 160,
+        colorDark: '#1d1d1f',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
 }
 
 function textoPDF(valor) {
@@ -1494,21 +1499,37 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
 }
 
 document.getElementById('btnPagarPaynet').addEventListener('click', async () => {
+    document.getElementById('metodoPago').value = 'Paynet';
     if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada('Paynet', 'btnPagarPaynet');
 });
 
 document.getElementById('btnPagarTarjeta').addEventListener('click', async () => {
+    document.getElementById('metodoPago').value = 'Tarjeta';
     if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada('Tarjeta', 'btnPagarTarjeta');
 });
 
 document.getElementById('btnPagarPayPal').addEventListener('click', async () => {
+    document.getElementById('metodoPago').value = 'PayPal';
     if (!validarAceptacionTerminos()) return;
     if (!document.getElementById('formCheckout').reportValidity()) return;
     await confirmarCompraSimulada('PayPal', 'btnPagarPayPal');
+});
+
+document.getElementById('btnConfirmarPago').addEventListener('click', async () => {
+    const metodoPago = document.getElementById('metodoPago').value || 'Paynet';
+    const botonesPorMetodo = {
+        Paynet: 'btnPagarPaynet',
+        Tarjeta: 'btnPagarTarjeta',
+        PayPal: 'btnPagarPayPal'
+    };
+    const idBoton = botonesPorMetodo[metodoPago] || botonesPorMetodo.Paynet;
+    if (!validarAceptacionTerminos()) return;
+    if (!document.getElementById('formCheckout').reportValidity()) return;
+    await confirmarCompraSimulada(metodoPago, idBoton);
 });
 
 

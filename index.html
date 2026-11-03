@@ -562,10 +562,10 @@
                                 </button>
                             </div>
                             <div id="paynetBarcodeContainer" class="paynet-code d-none">
-                                <div class="small text-muted mb-2">Código de barras de pago Paynet</div>
-                                <div id="paynetBarcodeVisual" class="d-flex justify-content-center align-items-end gap-1 bg-white border rounded-3 p-3" style="min-height: 88px; overflow-x: auto;"></div>
+                                <div class="small text-muted mb-2">Código QR de pago Paynet</div>
+                                <div id="paynetBarcodeVisual" class="paynet-qr-visual bg-white border rounded-3 p-3" aria-label="Código QR de pago Paynet"></div>
                                 <div id="paynetBarcodeValue" class="fw-bold text-center mt-3 fs-5"></div>
-                                <div class="small text-center text-muted mt-2">Muestra este código en la sucursal o escanéalo con la app Paynet para completar el pago.</div>
+                                <div class="small text-center text-muted mt-2">Escanea este código con la app Paynet o muéstralo en la sucursal para completar el pago.</div>
                             </div>
                         </div>
 
@@ -584,6 +584,9 @@
                     
                     <div class="modal-footer justify-content-between">
                         <span id="checkoutTotal" class="fw-bold fs-4 text-dark">Total: $0 MXN</span>
+                        <button id="btnConfirmarPago" type="button" class="btn btn-primary">
+                            <i class="bi bi-lock-fill me-1"></i>Pagar ahora
+                        </button>
                     </div>
                 </form>
             </div>
@@ -777,6 +780,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
