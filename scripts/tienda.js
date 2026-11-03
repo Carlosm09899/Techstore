@@ -1434,6 +1434,21 @@ function obtenerDatosEnvio() {
 }
 
 async function confirmarCompraSimulada(metodoPago, idBoton) {
+    if (!carrito.length) {
+        const mensajeCarritoVacio = document.getElementById('msgCheckout');
+        mensajeCarritoVacio.textContent = 'La compra ya fue procesada. Puedes descargar tu comprobante o cerrar esta ventana.';
+        mensajeCarritoVacio.className = 'small text-center fw-medium mt-3 text-info';
+        return;
+    }
+
+    const datosEnvio = obtenerDatosEnvio();
+    if (Object.values(datosEnvio).some((valor) => !valor)) {
+        const mensajeDatosIncompletos = document.getElementById('msgCheckout');
+        mensajeDatosIncompletos.textContent = 'Completa los datos de envío antes de continuar con el pago.';
+        mensajeDatosIncompletos.className = 'small text-center fw-medium mt-3 text-danger';
+        return;
+    }
+
     const boton = document.getElementById(idBoton);
     const mensaje = document.getElementById('msgCheckout');
     boton.disabled = true;
@@ -1447,14 +1462,14 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
             credentials: 'include',
             body: JSON.stringify({
                 items: carrito,
-                envio: obtenerDatosEnvio(),
+                envio: datosEnvio,
                 metodoPago
             })
         });
         const data = await respuesta.json();
         if (!respuesta.ok) throw new Error(data.message || 'No se pudo simular el pago');
 
-        const envio = obtenerDatosEnvio();
+        const envio = datosEnvio;
         const itemsCompra = carrito.map((item) => ({
             nombre: item.nombre,
             equipoNombre: item.equipoNombre,
@@ -1488,13 +1503,14 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
         renderizarCarrito();
         if (metodoPago === 'Paynet') generarCodigoPaynet(data.total);
         else limpiarCodigoPaynet();
-        document.getElementById('formCheckout').reset();
         document.getElementById('metodoPago').value = 'Paynet';
+        ['btnPagarPaynet', 'btnPagarTarjeta', 'btnPagarPayPal', 'btnConfirmarPago']
+            .forEach((id) => { document.getElementById(id).disabled = true; });
     } catch (error) {
         mensaje.textContent = error.message;
         mensaje.className = 'small text-center fw-medium mt-3 text-danger';
     } finally {
-        boton.disabled = false;
+        if (carrito.length) boton.disabled = false;
     }
 }
 
