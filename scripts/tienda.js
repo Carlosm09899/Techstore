@@ -1506,6 +1506,9 @@ async function confirmarCompraSimulada(metodoPago, idBoton) {
         document.getElementById('metodoPago').value = 'Paynet';
         ['btnPagarPaynet', 'btnPagarTarjeta', 'btnPagarPayPal', 'btnConfirmarPago']
             .forEach((id) => { document.getElementById(id).disabled = true; });
+        setTimeout(() => {
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCheckout')).hide();
+        }, 1200);
     } catch (error) {
         mensaje.textContent = error.message;
         mensaje.className = 'small text-center fw-medium mt-3 text-danger';
