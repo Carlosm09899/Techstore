@@ -36,7 +36,9 @@
                 </ul>
             </div>
             <div class="d-flex gap-2 align-items-center">
-                <a href="#catalogo" class="nav-action-btn" title="Buscar en catálogo"><i class="bi bi-search"></i></a>
+                <button type="button" id="btnAbrirBusquedaNav" class="nav-action-btn" title="Buscar en catálogo">
+                    <i class="bi bi-search"></i>
+                </button>
                 <div class="dropdown">
                     <button id="cuentaUsuario" type="button" class="btn btn-link text-decoration-none p-0 nav-action-btn" data-bs-toggle="modal" data-bs-target="#modalAuth" title="Mi Cuenta">
                         <i class="bi bi-person"></i>
@@ -63,7 +65,72 @@
         <span>Certificación 0 Riesgo en cada componente: garantizamos compatibilidad o te devolvemos tu dinero. <a href="#catalogo">Explora las piezas &gt;</a></span>
     </div>
 
-    <!-- 2. CARRUSEL HERO (Apple Gallery Showcase) -->
+    <!-- 2. APPLE STORE HERO & QUICK STORE NAV (Estilo Apple Store México) -->
+    <section class="apple-store-header-section">
+        <div class="container">
+            <div class="apple-store-headline-row">
+                <div>
+                    <h1 class="apple-store-main-title">
+                        Tienda. <span class="text-secondary opacity-75">La mejor manera de equipar y potenciar tu tecnología.</span>
+                    </h1>
+                </div>
+                <div class="apple-specialist-card">
+                    <div class="specialist-avatar">
+                        <i class="bi bi-person-badge fs-4 text-primary"></i>
+                    </div>
+                    <div class="specialist-text">
+                        <span class="specialist-title">¿Necesitas ayuda técnica?</span>
+                        <a href="https://wa.me/527721188960?text=Hola,%20necesito%20asesor%C3%ADa%20para%20elegir%20un%20componente" target="_blank" class="specialist-link">
+                            Habla con un especialista <i class="bi bi-chevron-right small"></i>
+                        </a>
+                        <span class="specialist-sub">Visita nuestro centro en ITSOEH</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apple Store Interactive Chapter Carousel -->
+            <div class="apple-chapter-nav mt-4">
+                <button type="button" class="chapter-item active filtro-categoria" data-categoria="">
+                    <div class="chapter-icon-circle">
+                        <i class="bi bi-grid-fill"></i>
+                    </div>
+                    <span class="chapter-label">Todos</span>
+                </button>
+                <button type="button" class="chapter-item filtro-categoria" data-categoria="Componentes PC">
+                    <div class="chapter-icon-circle">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <span class="chapter-label">Memoria RAM</span>
+                </button>
+                <button type="button" class="chapter-item filtro-categoria" data-categoria="Almacenamiento">
+                    <div class="chapter-icon-circle">
+                        <i class="bi bi-device-ssd"></i>
+                    </div>
+                    <span class="chapter-label">Almacenamiento SSD</span>
+                </button>
+                <button type="button" class="chapter-item filtro-categoria" data-categoria="Repuestos Laptops">
+                    <div class="chapter-icon-circle">
+                        <i class="bi bi-laptop"></i>
+                    </div>
+                    <span class="chapter-label">Baterías y Pantallas</span>
+                </button>
+                <button type="button" class="chapter-item filtro-categoria" data-categoria="Mantenimiento PC">
+                    <div class="chapter-icon-circle">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                    <span class="chapter-label">Herramientas DIY</span>
+                </button>
+                <a href="#plan-canje" class="chapter-item text-decoration-none">
+                    <div class="chapter-icon-circle bg-dark text-white">
+                        <i class="bi bi-arrow-repeat"></i>
+                    </div>
+                    <span class="chapter-label">Plan de Canje</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2.1 CARRUSEL HERO DESTACADOS (Apple Big Cards Showcase) -->
     <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">
             <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
@@ -139,24 +206,74 @@
         </button>
     </div>
 
-    <!-- 3. MENÚ RÁPIDO DE CATEGORÍAS (Apple Segmented Bar) -->
-    <section id="catalogo" class="container text-center">
-        <h2 class="section-headline">Explora nuestro catálogo</h2>
-        <p class="section-subhead">Filtra por tipo de componente y actualiza con precisión.</p>
-        <div class="category-pill-container">
+    <!-- 3. MENÚ RÁPIDO DE CATEGORÍAS (Apple Segmented Bar & Live Search) -->
+    <section id="catalogo" class="container">
+        <div class="row align-items-end justify-content-between mb-4">
+            <div class="col-lg-6">
+                <span class="apple-tag apple-tag-light mb-2">CATÁLOGO EXCLUSIVO</span>
+                <h2 class="section-headline text-start mb-1">Lo último. <span class="text-secondary opacity-75">Componentes listos para instalar.</span></h2>
+            </div>
+            <div class="col-lg-5 col-xl-4 mt-3 mt-lg-0">
+                <div class="apple-search-box">
+                    <i class="bi bi-search text-muted"></i>
+                    <input type="text" id="buscadorProductos" class="form-control apple-search-input" placeholder="Buscar RAM, SSD NVMe, pantallas...">
+                    <button type="button" id="btnLimpiarBuscador" class="btn btn-sm text-muted d-none" aria-label="Limpiar búsqueda">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-pill-container mb-4">
             <button class="btn filtro-categoria active" data-categoria="">Todos</button>
+            <button class="btn filtro-categoria" data-categoria="Componentes PC">Memoria RAM</button>
+            <button class="btn filtro-categoria" data-categoria="Almacenamiento">Almacenamiento (SSD)</button>
             <button class="btn filtro-categoria" data-categoria="Repuestos Laptops">Baterías y Pantallas</button>
-            <button class="btn filtro-categoria" data-categoria="Almacenamiento">Almacenamiento (SSD/HDD)</button>
-            <button class="btn filtro-categoria" data-categoria="Componentes PC">Memoria RAM y componentes</button>
-            <button class="btn filtro-categoria" data-categoria="Mantenimiento PC">Mantenimiento y herramientas</button>
+            <button class="btn filtro-categoria" data-categoria="Mantenimiento PC">Herramientas DIY</button>
         </div>
     </section>
 
-    <!-- 4. GRID DE PRODUCTOS DESTACADOS -->
-    <section class="container product-section-wrapper">
-        <h2 class="section-headline mb-4">Componentes Destacados</h2>
-        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="contenedor-productos">
+    <!-- 4. GRID DE PRODUCTOS DESTACADOS (Apple Shelf Cards) -->
+    <section class="container product-section-wrapper pt-0">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="contenedor-productos">
             <p class="text-center text-muted col-12 py-5">Cargando catálogo...</p>
+        </div>
+    </section>
+
+    <!-- 4.1 APPLE STORE ADVANTAGES (Por qué elegir TechStore / Apple Experience) -->
+    <section class="container py-5 my-3">
+        <h2 class="section-headline text-center mb-2">La diferencia DIY. <span class="text-secondary opacity-75">Comprar con total certeza.</span></h2>
+        <p class="section-subhead text-center mb-5">Diseñado para que actualices tu equipo con la misma confianza que en una tienda oficial.</p>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="apple-feature-tile h-100">
+                    <div class="feature-icon text-primary"><i class="bi bi-shield-check"></i></div>
+                    <h5 class="fw-bold mt-3 mb-2">Garantía 0 Riesgo</h5>
+                    <p class="text-secondary small mb-0">Comprobación algorítmica de compatibilidad con tu equipo antes de pagar. Si no encaja, te devolvemos el 100%.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="apple-feature-tile h-100">
+                    <div class="feature-icon text-dark"><i class="bi bi-tools"></i></div>
+                    <h5 class="fw-bold mt-3 mb-2">Herramientas Incluidas</h5>
+                    <p class="text-secondary small mb-0">Cada pieza viene con las puntas magnéticas y palancas necesarias para realizar el cambio en casa sin pagar talleres.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="apple-feature-tile h-100">
+                    <div class="feature-icon text-success"><i class="bi bi-truck"></i></div>
+                    <h5 class="fw-bold mt-3 mb-2">Entrega y Retiro Local</h5>
+                    <p class="text-secondary small mb-0">Envío nacional rastreado o retiro inmediato en nuestro centro tecnológico dentro del campus ITSOEH.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="apple-feature-tile h-100">
+                    <div class="feature-icon text-info"><i class="bi bi-arrow-repeat"></i></div>
+                    <h5 class="fw-bold mt-3 mb-2">Plan Trade In (Canje)</h5>
+                    <p class="text-secondary small mb-0">Entrega tus memorias RAM o discos anteriores para recibir un abono directo en tu nueva compra tecnológica.</p>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -741,6 +858,40 @@
                         <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i>Guardar dirección</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE BÚSQUEDA GLOBAL RÁPIDA (Estilo Spotlight / Apple Store) -->
+    <div class="modal fade" id="modalBusquedaRapida" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content apple-search-modal-content">
+                <div class="modal-body p-4">
+                    <div class="d-flex align-items-center gap-3 border-bottom pb-3">
+                        <i class="bi bi-search fs-4 text-primary"></i>
+                        <input type="text" id="inputModalBusqueda" class="form-control form-control-lg border-0 shadow-none px-0" placeholder="Escribe el componente a buscar (ej. DDR4, NVMe, Batería...)" autofocus>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <!-- Sugerencias rápidas -->
+                    <div id="sugerenciasBusqueda" class="mt-3">
+                        <span class="text-secondary small fw-bold text-uppercase d-block mb-2" style="font-size: 11px; letter-spacing: 0.05em;">Búsquedas frecuentes</span>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-sm btn-apple-tag tag-busqueda-rapida" data-query="DDR4">Memoria DDR4</button>
+                            <button type="button" class="btn btn-sm btn-apple-tag tag-busqueda-rapida" data-query="DDR5">Memoria DDR5</button>
+                            <button type="button" class="btn btn-sm btn-apple-tag tag-busqueda-rapida" data-query="NVMe">SSD NVMe M.2</button>
+                            <button type="button" class="btn btn-sm btn-apple-tag tag-busqueda-rapida" data-query="SATA">SSD SATA 2.5</button>
+                            <button type="button" class="btn btn-sm btn-apple-tag tag-busqueda-rapida" data-query="Pantalla">Pantalla Laptop</button>
+                            <button type="button" class="btn btn-sm btn-apple-tag tag-busqueda-rapida" data-query="Pasta Térmica">Pasta Térmica</button>
+                            <button type="button" class="btn btn-sm btn-apple-tag tag-busqueda-rapida" data-query="Destornilladores">Herramientas DIY</button>
+                        </div>
+                    </div>
+
+                    <!-- Resultados en modal -->
+                    <div id="resultadosModalBusqueda" class="mt-4" style="max-height: 400px; overflow-y: auto;">
+                        <p class="text-muted text-center py-3 mb-0">Escribe para encontrar componentes al instante.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

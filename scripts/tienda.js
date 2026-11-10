@@ -1099,6 +1099,45 @@ document.getElementById('cerrarSesion').addEventListener('click', async () => {
     mostrarCuentaInicial();
 });
 
+// Función para determinar el icono representativo estilo Apple Hardware
+function obtenerIconoProducto(producto) {
+    const nombre = String(producto.nombre || '').toLowerCase();
+    const cat = String(producto.categoria || '').toLowerCase();
+    const tipo = String(producto.tipo_producto || '').toLowerCase();
+
+    if (tipo === 'ram' || nombre.includes('ram') || cat.includes('ram') || nombre.includes('ddr')) {
+        return { icono: 'bi-memory', subtitulo: 'Memoria de alto rendimiento', gradiente: 'apple-icon-ram' };
+    }
+    if (tipo === 'ssd' || nombre.includes('nvme') || nombre.includes('ssd') || cat.includes('almacenamiento')) {
+        return { icono: 'bi-device-ssd', subtitulo: 'Almacenamiento ultra veloz', gradiente: 'apple-icon-ssd' };
+    }
+    if (tipo === 'hdd' || nombre.includes('disco duro') || nombre.includes('mecanico')) {
+        return { icono: 'bi-device-hdd', subtitulo: 'Almacenamiento masivo', gradiente: 'apple-icon-hdd' };
+    }
+    if (tipo === 'bateria' || nombre.includes('bateria') || nombre.includes('batería')) {
+        return { icono: 'bi-battery-charging', subtitulo: 'Energía certificada', gradiente: 'apple-icon-battery' };
+    }
+    if (tipo === 'pantalla' || nombre.includes('pantalla') || nombre.includes('panel') || nombre.includes('led')) {
+        return { icono: 'bi-display', subtitulo: 'Panel de alta fidelidad', gradiente: 'apple-icon-display' };
+    }
+    if (tipo === 'cargador' || nombre.includes('cargador') || nombre.includes('adaptador')) {
+        return { icono: 'bi-plug', subtitulo: 'Alimentación Power Delivery', gradiente: 'apple-icon-charger' };
+    }
+    if (nombre.includes('pasta') || nombre.includes('termica') || nombre.includes('térmica')) {
+        return { icono: 'bi-droplet-half', subtitulo: 'Disipación térmica pro', gradiente: 'apple-icon-thermal' };
+    }
+    if (nombre.includes('destornillador') || nombre.includes('herramientas') || cat.includes('mantenimiento')) {
+        return { icono: 'bi-tools', subtitulo: 'Kit de precisión DIY', gradiente: 'apple-icon-tools' };
+    }
+    if (tipo === 'fuente' || nombre.includes('fuente')) {
+        return { icono: 'bi-lightning-charge', subtitulo: 'Poder certificado 80+', gradiente: 'apple-icon-power' };
+    }
+    return { icono: 'bi-cpu', subtitulo: 'Componente certificado', gradiente: 'apple-icon-generic' };
+}
+
+// Variable para el filtro de texto
+let terminoBusquedaActual = '';
+
 // 1. Cargar productos desde MongoDB
 async function cargarProductos(categoria = '') {
     try {
@@ -1116,58 +1155,105 @@ async function cargarProductos(categoria = '') {
             ...productos
         ];
         
-        const contenedor = document.getElementById('contenedor-productos');
-        contenedor.innerHTML = ''; 
-
-        if (productos.length === 0) {
-            contenedor.innerHTML = '<p class="text-center text-muted col-12">No hay productos en esta categoría.</p>';
-            return;
-        }
-
-        productos.forEach((producto) => {
-            const compatibilidad = producto.compatibilidad || {};
-            const cardHTML = `
-                <div class="col">
-                    <div class="card h-100 border-0 shadow-sm rounded-4 text-center p-3">
-                        <div class="text-end mb-2">
-                            <span class="badge bg-success"><i class="bi bi-shield-check"></i> 0 Riesgo</span>
-                        </div>
-                        <div class="bg-secondary bg-opacity-10 rounded-3 p-4 mb-3 d-flex align-items-center justify-content-center" style="height: 180px;">
-                            <i class="bi bi-pc-display-horizontal display-1 text-dark"></i>
-                        </div>
-                        <div class="card-body p-0 d-flex flex-column">
-                            <h5 class="card-title fw-bold">${escaparHTML(producto.nombre)}</h5>
-                            <p class="card-text text-muted small">${escaparHTML(producto.descripcion_corta || 'Sin descripción')}</p>
-                            <div class="product-rating mb-2">
-                                ${estrellasHTML(producto.resenas?.promedio || 0)}
-                                <button type="button" class="btn btn-link btn-sm p-0 ms-2 btn-ver-resenas" data-producto-id="${escaparHTML(String(producto._id))}" data-producto-nombre="${escaparHTML(producto.nombre)}">
-                                    ${Number(producto.resenas?.total || 0)} ${Number(producto.resenas?.total || 0) === 1 ? 'reseña' : 'reseñas'}
-                                </button>
-                            </div>
-                            <p class="text-primary small mb-3"><i class="bi bi-tools"></i> Incluye manual y herramientas</p>
-                            <div class="mb-2">${badgeCompatibilidad(compatibilidad, producto)}</div>
-                            <p class="fw-bold fs-5 mt-auto">$${Number(producto.precio || 0).toLocaleString()} MXN</p>
-                            <p class="small ${Number(producto.stock) > 0 ? 'text-muted' : 'text-danger'} mb-2">
-                                ${Number(producto.stock) > 0 ? `Disponibles: ${Number(producto.stock)}` : 'Agotado'}
-                            </p>
-                            <button class="btn btn-dark rounded-pill w-100 mt-2 btn-validar-compatibilidad" data-producto-id="${escaparHTML(String(producto._id))}" ${Number(producto.stock) > 0 ? '' : 'disabled'}>${Number(producto.stock) > 0 ? 'Validar Compatibilidad' : 'Agotado'}</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            contenedor.innerHTML += cardHTML;
-        });
-
-        contenedor.querySelectorAll('.btn-validar-compatibilidad').forEach((boton) => {
-            boton.addEventListener('click', () => abrirModalCompatibilidad(boton.dataset.productoId));
-        });
-        contenedor.querySelectorAll('.btn-ver-resenas').forEach((boton) => {
-            boton.addEventListener('click', () => abrirResenas(boton.dataset.productoId, boton.dataset.productoNombre));
-        });
+        renderizarGridProductos();
     } catch (error) {
         console.error("Error al conectar con el backend de productos:", error);
     }
+}
 
+function renderizarGridProductos() {
+    const contenedor = document.getElementById('contenedor-productos');
+    if (!contenedor) return;
+
+    const categoriaActiva = document.querySelector('.filtro-categoria.active')?.dataset.categoria || '';
+    
+    let productosFiltrados = productosCatalogo;
+    if (categoriaActiva) {
+        productosFiltrados = productosFiltrados.filter(p => p.categoria === categoriaActiva);
+    }
+    if (terminoBusquedaActual) {
+        const query = normalizarTexto(terminoBusquedaActual);
+        productosFiltrados = productosFiltrados.filter(p => 
+            normalizarTexto(p.nombre).includes(query) || 
+            normalizarTexto(p.descripcion_corta).includes(query) ||
+            normalizarTexto(p.categoria).includes(query)
+        );
+    }
+
+    contenedor.innerHTML = ''; 
+
+    if (productosFiltrados.length === 0) {
+        contenedor.innerHTML = `
+            <div class="col-12 py-5 text-center">
+                <div class="apple-empty-state">
+                    <i class="bi bi-search fs-1 text-muted d-block mb-3"></i>
+                    <h4 class="fw-bold">No se encontraron productos</h4>
+                    <p class="text-secondary small">Intenta con otro término o selecciona "Todos" en las categorías.</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
+
+    productosFiltrados.forEach((producto) => {
+        const compatibilidad = producto.compatibilidad || {};
+        const metaIcono = obtenerIconoProducto(producto);
+        const stockNum = Number(producto.stock);
+        const tieneStock = Number.isFinite(stockNum) ? stockNum > 0 : true;
+
+        const cardHTML = `
+            <div class="col">
+                <div class="apple-shelf-card h-100">
+                    <div class="shelf-card-badge-row">
+                        <span class="apple-eyebrow-tag">Novedad</span>
+                        <span class="badge badge-zero-risk"><i class="bi bi-shield-check me-1"></i>0 Riesgo</span>
+                    </div>
+
+                    <div class="apple-pedestal ${metaIcono.gradiente}">
+                        <i class="bi ${metaIcono.icono} display-3 apple-hardware-icon"></i>
+                        <span class="pedestal-caption">${metaIcono.subtitulo}</span>
+                    </div>
+
+                    <div class="shelf-card-body">
+                        <h3 class="shelf-card-title">${escaparHTML(producto.nombre)}</h3>
+                        <p class="shelf-card-desc">${escaparHTML(producto.descripcion_corta || 'Componente premium con certificación y compatibilidad garantizada.')}</p>
+                        
+                        <div class="product-rating mb-2">
+                            ${estrellasHTML(producto.resenas?.promedio || 0)}
+                            <button type="button" class="btn btn-link btn-sm p-0 ms-2 btn-ver-resenas" data-producto-id="${escaparHTML(String(producto._id))}" data-producto-nombre="${escaparHTML(producto.nombre)}">
+                                (${Number(producto.resenas?.total || 0)})
+                            </button>
+                        </div>
+
+                        <div class="apple-diy-perk mb-2">
+                            <i class="bi bi-tools text-primary me-1"></i> Manual y herramientas incluidas
+                        </div>
+
+                        <div class="mb-3">${badgeCompatibilidad(compatibilidad, producto)}</div>
+
+                        <div class="shelf-card-footer mt-auto">
+                            <div class="price-container">
+                                <span class="shelf-price-label">Precio</span>
+                                <span class="shelf-card-price">$${Number(producto.precio || 0).toLocaleString()} MXN</span>
+                            </div>
+                            
+                            <button class="btn btn-apple-buy w-100 btn-validar-compatibilidad" data-producto-id="${escaparHTML(String(producto._id))}" ${tieneStock ? '' : 'disabled'}>
+                                ${tieneStock ? '<i class="bi bi-check2-circle me-1"></i> Comprar' : 'Agotado'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        contenedor.innerHTML += cardHTML;
+    });
+
+    contenedor.querySelectorAll('.btn-validar-compatibilidad').forEach((boton) => {
+        boton.addEventListener('click', () => abrirModalCompatibilidad(boton.dataset.productoId));
+    });
+    contenedor.querySelectorAll('.btn-ver-resenas').forEach((boton) => {
+        boton.addEventListener('click', () => abrirResenas(boton.dataset.productoId, boton.dataset.productoNombre));
+    });
 }
 
 document.querySelectorAll('.review-star').forEach((boton) => {
@@ -1215,11 +1301,162 @@ document.getElementById('btnPublicarResena').addEventListener('click', async () 
 
 document.querySelectorAll('.filtro-categoria').forEach((boton) => {
     boton.addEventListener('click', () => {
-        document.querySelectorAll('.filtro-categoria').forEach((item) => item.classList.remove('active'));
-        boton.classList.add('active');
-        cargarProductos(boton.dataset.categoria);
+        const cat = boton.dataset.categoria ?? '';
+        document.querySelectorAll('.filtro-categoria').forEach((item) => {
+            if ((item.dataset.categoria ?? '') === cat) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+        renderizarGridProductos();
     });
 });
+
+// Soporte para buscador en vivo en el catálogo estilo Apple Store
+const buscadorInput = document.getElementById('buscadorProductos');
+const btnLimpiarBuscador = document.getElementById('btnLimpiarBuscador');
+const btnAbrirBusquedaNav = document.getElementById('btnAbrirBusquedaNav');
+const modalBusquedaRapidaEl = document.getElementById('modalBusquedaRapida');
+const inputModalBusqueda = document.getElementById('inputModalBusqueda');
+const resultadosModalBusqueda = document.getElementById('resultadosModalBusqueda');
+
+if (btnAbrirBusquedaNav && modalBusquedaRapidaEl) {
+    btnAbrirBusquedaNav.addEventListener('click', () => {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalBusquedaRapidaEl);
+        modal.show();
+        setTimeout(() => {
+            if (inputModalBusqueda) inputModalBusqueda.focus();
+        }, 300);
+    });
+}
+
+function buscarComponentes(texto) {
+    if (!texto) return [];
+    const query = normalizarTexto(texto);
+    return productosCatalogo.filter((p) => {
+        return (
+            normalizarTexto(p.nombre).includes(query) ||
+            normalizarTexto(p.descripcion_corta).includes(query) ||
+            normalizarTexto(p.categoria).includes(query) ||
+            normalizarTexto(p.tipo_producto).includes(query) ||
+            (p.compatibilidad?.ramTipos && p.compatibilidad.ramTipos.some(r => normalizarTexto(r).includes(query))) ||
+            (p.compatibilidad?.almacenamientoTipos && p.compatibilidad.almacenamientoTipos.some(a => normalizarTexto(a).includes(query)))
+        );
+    });
+}
+
+function renderizarResultadosModal(resultados) {
+    if (!resultadosModalBusqueda) return;
+    if (!resultados.length) {
+        resultadosModalBusqueda.innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-emoji-neutral fs-2 text-muted d-block mb-2"></i>
+                <h6 class="fw-bold mb-1">No se encontraron componentes</h6>
+                <p class="text-secondary small mb-0">Intenta con otro término (ejemplo: DDR4, NVMe, Kingston, SATA, Laptop).</p>
+            </div>
+        `;
+        return;
+    }
+
+    resultadosModalBusqueda.innerHTML = `
+        <div class="small text-muted mb-2 fw-medium">${resultados.length} ${resultados.length === 1 ? 'componente encontrado' : 'componentes encontrados'}:</div>
+        <div class="list-group list-group-flush gap-2">
+            ${resultados.map((prod) => {
+                const iconoMeta = obtenerIconoProducto(prod);
+                return `
+                    <div class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-3 rounded-3 border-0 bg-light shadow-sm item-resultado-busqueda" data-producto-id="${escaparHTML(String(prod._id))}" style="cursor: pointer;">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 p-2 bg-white text-primary fs-3 d-flex align-items-center justify-content-center shadow-xs" style="width: 48px; height: 48px;">
+                                <i class="bi ${iconoMeta.icono}"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">${escaparHTML(prod.nombre)}</h6>
+                                <span class="small text-muted">${escaparHTML(prod.categoria)} · ${escaparHTML(iconoMeta.subtitulo)}</span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="fw-bold text-dark d-block">$${Number(prod.precio || 0).toLocaleString()} MXN</span>
+                            <span class="btn btn-sm btn-apple-primary py-1 px-3 mt-1" style="font-size: 11px;">Ver pieza &gt;</span>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+
+    resultadosModalBusqueda.querySelectorAll('.item-resultado-busqueda').forEach((item) => {
+        item.addEventListener('click', () => {
+            const prodId = item.dataset.productoId;
+            const modal = bootstrap.Modal.getInstance(modalBusquedaRapidaEl);
+            if (modal) modal.hide();
+
+            // Sincronizar catálogo principal y scroll suave
+            const prod = productosCatalogo.find(p => String(p._id) === String(prodId));
+            if (prod) {
+                if (buscadorInput) {
+                    buscadorInput.value = prod.nombre;
+                    terminoBusquedaActual = prod.nombre;
+                    if (btnLimpiarBuscador) btnLimpiarBuscador.classList.remove('d-none');
+                }
+                document.querySelectorAll('.filtro-categoria').forEach(b => b.classList.remove('active'));
+                const btnTodos = document.querySelector('.filtro-categoria[data-categoria=""]');
+                if (btnTodos) btnTodos.classList.add('active');
+                renderizarGridProductos();
+
+                const elementoCatalogo = document.getElementById('catalogo');
+                if (elementoCatalogo) {
+                    elementoCatalogo.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+    });
+}
+
+if (inputModalBusqueda) {
+    inputModalBusqueda.addEventListener('input', (e) => {
+        const val = e.target.value.trim();
+        if (!val) {
+            resultadosModalBusqueda.innerHTML = '<p class="text-muted text-center py-3 mb-0">Escribe para encontrar componentes al instante.</p>';
+            return;
+        }
+        const matches = buscarComponentes(val);
+        renderizarResultadosModal(matches);
+    });
+}
+
+document.querySelectorAll('.tag-busqueda-rapida').forEach((boton) => {
+    boton.addEventListener('click', () => {
+        const query = boton.dataset.query;
+        if (inputModalBusqueda) {
+            inputModalBusqueda.value = query;
+            renderizarResultadosModal(buscarComponentes(query));
+            inputModalBusqueda.focus();
+        }
+    });
+});
+
+if (buscadorInput) {
+    buscadorInput.addEventListener('input', (e) => {
+        terminoBusquedaActual = e.target.value.trim();
+        if (btnLimpiarBuscador) {
+            btnLimpiarBuscador.classList.toggle('d-none', !terminoBusquedaActual);
+        }
+        renderizarGridProductos();
+    });
+}
+
+if (btnLimpiarBuscador) {
+    btnLimpiarBuscador.addEventListener('click', () => {
+        if (buscadorInput) {
+            buscadorInput.value = '';
+            terminoBusquedaActual = '';
+            btnLimpiarBuscador.classList.add('d-none');
+            renderizarGridProductos();
+            buscadorInput.focus();
+        }
+    });
+}
 
 document.getElementById('btnVaciarCarrito').addEventListener('click', () => {
     if (!carrito.length) return;
