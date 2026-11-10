@@ -433,17 +433,9 @@ nav.navbar {
    Apple Store (México) Modern Store Header & Interactive Chapter Navigation
    -------------------------------------------------------------------------- */
 .apple-store-header-section {
-    padding: 48px 0 24px;
+    padding: 24px 0 20px;
     background: linear-gradient(180deg, #ffffff 0%, var(--color-fog-white) 100%);
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.apple-store-headline-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 32px;
-    flex-wrap: wrap;
 }
 
 .apple-store-main-title {
@@ -453,56 +445,6 @@ nav.navbar {
     letter-spacing: -0.025em;
     color: var(--color-obsidian);
     max-width: 720px;
-}
-
-.apple-specialist-card {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    background: var(--color-pure-white);
-    padding: 12px 18px;
-    border-radius: 18px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    max-width: 330px;
-}
-
-.specialist-avatar {
-    width: 44px;
-    height: 44px;
-    border-radius: 50%;
-    background-color: rgba(0, 113, 227, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.specialist-text {
-    display: flex;
-    flex-direction: column;
-}
-
-.specialist-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--color-obsidian);
-}
-
-.specialist-link {
-    font-size: 12px;
-    color: var(--color-iris-blue);
-    text-decoration: none;
-    font-weight: 500;
-}
-
-.specialist-link:hover {
-    text-decoration: underline;
-}
-
-.specialist-sub {
-    font-size: 11px;
-    color: var(--color-silver);
 }
 
 /* Apple Chapter Nav (Icon Circles Bar) */
