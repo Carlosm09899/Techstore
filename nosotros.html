@@ -124,6 +124,156 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Cumplimiento de Normas de Seguridad de la Información -->
+            <div class="mt-5 pt-4 border-top" id="normas-seguridad">
+                <div class="text-center mb-5">
+                    <span class="norma-badge mb-2">
+                        <i class="bi bi-patch-check-fill"></i> SEGURIDAD DE LA INFORMACIÓN Y PRIVACIDAD
+                    </span>
+                    <h2 class="apple-hero-title fs-2 mt-2 mb-3">Compromiso y Conformidad Normativa</h2>
+                    <p class="apple-hero-subhead text-secondary mx-auto" style="max-width: 820px; font-size: 16px;">
+                        Nuestra plataforma web <strong>TechStore</strong> cumple con las directrices de seguridad de la información y buenas prácticas establecidas en el estándar <strong>PROY-NMX-I-27002-NYCE-2012</strong> (alineada con los requisitos de <strong>NMX-I-27001-NYCE-2015</strong> / ISO/IEC 27001:2013). A continuación se desglosan las familias de control y requisitos aplicables que respaldan la operación segura de nuestra plataforma:
+                    </p>
+                </div>
+
+                <div class="row g-4 align-items-stretch">
+                    <!-- Control A.9: Control de Acceso -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="norma-card">
+                            <div class="norma-card-header">
+                                <div class="norma-icon-box blue">
+                                    <i class="bi bi-shield-lock"></i>
+                                </div>
+                                <div>
+                                    <div class="norma-tag">Dominio A.9</div>
+                                    <h5 class="fw-bold fs-6 mb-0">Control de Acceso</h5>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">Garantiza el acceso restringido a usuarios legítimos y previene accesos no autorizados a cuentas y servicios.</p>
+                            <ul class="norma-list">
+                                <li><strong>A.9.2.1 Registro y gestión:</strong> Flujo formal para registro y verificación de identidad de clientes.</li>
+                                <li><strong>A.9.4.2 Inicio de sesión seguro:</strong> Autenticación validada por servidor con credenciales en cookies HttpOnly y SameSite.</li>
+                                <li><strong>A.9.4.3 Calidad de contraseñas:</strong> Validación interactiva con requisitos estrictos de complejidad y robustez mínima.</li>
+                                <li><strong>A.9.4.1 Restricción de acceso:</strong> Segregación de operaciones que requieren inicio de sesión previo (equipos, direcciones, órdenes).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Control A.10: Criptografía -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="norma-card">
+                            <div class="norma-card-header">
+                                <div class="norma-icon-box purple">
+                                    <i class="bi bi-key"></i>
+                                </div>
+                                <div>
+                                    <div class="norma-tag">Dominio A.10</div>
+                                    <h5 class="fw-bold fs-6 mb-0">Criptografía</h5>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">Uso eficaz de controles criptográficos para resguardar la confidencialidad e integridad de la información.</p>
+                            <ul class="norma-list">
+                                <li><strong>A.10.1.1 Controles criptográficos:</strong> Hashing robusto unidireccional con algoritmo bcrypt y salt para almacenamiento de contraseñas.</li>
+                                <li><strong>A.10.1.2 Gestión de llaves:</strong> Generación y custodia segura de secretos de firma de sesión (`SESSION_SECRET`) en variables de entorno.</li>
+                                <li><strong>Tránsito cifrado:</strong> Protección integral de datos en tránsito a través de túneles TLS/HTTPS.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Control A.14: Desarrollo y Seguridad en Sistemas -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="norma-card">
+                            <div class="norma-card-header">
+                                <div class="norma-icon-box green">
+                                    <i class="bi bi-code-slash"></i>
+                                </div>
+                                <div>
+                                    <div class="norma-tag">Dominio A.14</div>
+                                    <h5 class="fw-bold fs-6 mb-0">Desarrollo y Transacciones Seguras</h5>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">Seguridad integrada en el ciclo de vida del software y servicios operados en redes públicas.</p>
+                            <ul class="norma-list">
+                                <li><strong>A.14.1.2 Aplicaciones en redes públicas:</strong> Protección contra alteración fraudulenta de parámetros, precios y existencias.</li>
+                                <li><strong>A.14.1.3 Transacciones seguras:</strong> Validación dual (frontend y backend) en la creación de órdenes de compra con control de atomicidad de stock.</li>
+                                <li><strong>A.14.2.5 Principios de ingeniería:</strong> Mitigación de XSS mediante saneamiento HTML y prevención de inyección NoSQL/SQL.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Control A.18: Cumplimiento y Privacidad -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="norma-card">
+                            <div class="norma-card-header">
+                                <div class="norma-icon-box orange">
+                                    <i class="bi bi-file-earmark-check"></i>
+                                </div>
+                                <div>
+                                    <div class="norma-tag">Dominio A.18</div>
+                                    <h5 class="fw-bold fs-6 mb-0">Cumplimiento y Privacidad</h5>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">Conformidad con disposiciones legales, estatutarias y protección de datos del consumidor.</p>
+                            <ul class="norma-list">
+                                <li><strong>A.18.1.4 Privacidad de datos personales (PII):</strong> Tratamiento lícito de datos de contacto y domicilio conforme a la legislación mexicana.</li>
+                                <li><strong>A.18.1.3 Protección de registros:</strong> Salvaguarda de comprobantes digitales de compra descargables en formato PDF no manipulable.</li>
+                                <li><strong>A.18.1.1 Requisitos contractuales:</strong> Aceptación explícita previa obligatoria de Términos y Condiciones en cada compra.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Control A.12: Seguridad en Operaciones -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="norma-card">
+                            <div class="norma-card-header">
+                                <div class="norma-icon-box dark">
+                                    <i class="bi bi-cpu"></i>
+                                </div>
+                                <div>
+                                    <div class="norma-tag">Dominio A.12</div>
+                                    <h5 class="fw-bold fs-6 mb-0">Seguridad en Operaciones</h5>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">Procedimientos técnicos de resguardo y procesamiento seguro de la información.</p>
+                            <ul class="norma-list">
+                                <li><strong>A.12.1.2 Gestión del cambio:</strong> Control de versiones de arquitectura y separación de módulos frontend/backend.</li>
+                                <li><strong>A.12.3.1 Respaldos de información:</strong> Persistencia segura y réplicas de bases de datos documentales en MongoDB.</li>
+                                <li><strong>A.12.4.1 Registro de eventos:</strong> Trazabilidad y bitácora de órdenes generadas con identificador único (Order ID).</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Control A.13: Seguridad en Comunicaciones y Pagos -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="norma-card">
+                            <div class="norma-card-header">
+                                <div class="norma-icon-box blue">
+                                    <i class="bi bi-credit-card"></i>
+                                </div>
+                                <div>
+                                    <div class="norma-tag">Dominio A.13</div>
+                                    <h5 class="fw-bold fs-6 mb-0">Comunicaciones y Pagos</h5>
+                                </div>
+                            </div>
+                            <p class="small text-muted mb-2">Protección de la transferencia de datos y de la información sensible transaccional.</p>
+                            <ul class="norma-list">
+                                <li><strong>A.13.2.1 Políticas de transferencia:</strong> Conexiones restringidas y blindaje de llamadas API REST mediante JSON tipificado.</li>
+                                <li><strong>A.13.2.3 Protección en pagos:</strong> Aislamiento de pasarelas de pago y generación cifrada de referencias QR Paynet para pago en sucursales.</li>
+                                <li><strong>No retención de datos sensibles:</strong> El sitio no almacena números confidenciales de tarjetas bancarias.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Esta arquitectura se actualiza y evalúa periódicamente para mantener los más altos niveles de integridad, confidencialidad y disponibilidad en cada interacción de nuestros clientes.
+                    </p>
+                </div>
+            </div>
+
         </section>
     </main>
 
@@ -141,6 +291,7 @@
                         <li><a href="index.html#catalogo">Catálogo</a></li>
                         <li><a href="#">Soporte y Garantías</a></li>
                         <li><a href="#">Política de Devolución "0 Riesgo"</a></li>
+                        <li><a href="#normas-seguridad">Seguridad NMX-I-27002</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">

@@ -1858,3 +1858,117 @@ footer hr {
 #contenedor-productos .card > div:nth-child(2) i {
     color: var(--color-slate) !important;
 }
+
+/* --------------------------------------------------------------------------
+   Cumplimiento Normativo (PROY-NMX-I-27002-NYCE-2012 / NMX-I-27001-NYCE-2015)
+   -------------------------------------------------------------------------- */
+.norma-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0, 113, 227, 0.08);
+    color: var(--color-iris-blue);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 980px;
+    letter-spacing: 0.02em;
+}
+
+.norma-card {
+    background: var(--color-pure-white);
+    border: 1px solid var(--color-pale-mist);
+    border-radius: var(--radius-card);
+    padding: 24px;
+    transition: all 0.25s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.norma-card:hover {
+    border-color: rgba(0, 113, 227, 0.35);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    transform: translateY(-2px);
+}
+
+.norma-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.norma-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.norma-icon-box.blue {
+    background: rgba(0, 113, 227, 0.1);
+    color: var(--color-iris-blue);
+}
+
+.norma-icon-box.green {
+    background: rgba(52, 199, 89, 0.12);
+    color: #1a7f37;
+}
+
+.norma-icon-box.purple {
+    background: rgba(175, 82, 222, 0.12);
+    color: #8944ab;
+}
+
+.norma-icon-box.orange {
+    background: rgba(255, 149, 0, 0.12);
+    color: #c95100;
+}
+
+.norma-icon-box.dark {
+    background: rgba(29, 29, 31, 0.08);
+    color: var(--color-obsidian);
+}
+
+.norma-tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-pewter);
+    margin-bottom: 2px;
+}
+
+.norma-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+    margin-top: 10px;
+    font-size: 13.5px;
+    color: var(--color-slate);
+}
+
+.norma-list li {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 8px;
+    line-height: 1.45;
+}
+
+.norma-list li:last-child {
+    margin-bottom: 0;
+}
+
+.norma-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    color: #34c759;
+    font-weight: bold;
+}
+
