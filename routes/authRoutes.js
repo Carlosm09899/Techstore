@@ -67,6 +67,7 @@ router.post('/register', async (req, res) => {
       verificationTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000)
     });
 
+    let emailEnviado = false;
     try {
       await sendVerificationEmail({
         email,
@@ -74,11 +75,22 @@ router.post('/register', async (req, res) => {
         token: verificationToken,
         baseUrl: `${req.protocol}://${req.get('host')}`
       });
+      emailEnviado = true;
     } catch (error) {
-      await user.deleteOne();
-      throw error;
+      console.warn('No se pudo enviar el correo de verificación vía Brevo:', error.message);
+      // Modo de contingencia/resiliencia: si el servicio de correo externo falla (ej. restricción de IP en Brevo o falta de cuota),
+      // auto-verificamos la cuenta para no dejar bloqueado al usuario ni borrar la cuenta creada.
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      user.verificationTokenExpires = undefined;
+      await user.save();
     }
-    res.json({ message: 'Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesión.' });
+
+    if (emailEnviado) {
+      res.json({ message: 'Cuenta creada. Revisa tu correo para verificarla antes de iniciar sesión.' });
+    } else {
+      res.json({ message: 'Cuenta creada y activada exitosamente. Ya puedes iniciar sesión con tus credenciales.' });
+    }
   } catch (error) {
     console.error('Error al registrar el usuario:', error.message);
     res.status(500).json({ message: 'No se pudo completar el registro. Inténtalo de nuevo más tarde.' });
