@@ -28,6 +28,11 @@ const orderSchema = new mongoose.Schema({
     enum: ['Paynet', 'Tarjeta', 'PayPal'],
     default: 'Paynet'
   },
+  paymentProviderId: { type: String, default: null, index: true, sparse: true },
+  pago: {
+    estado: { type: String, enum: ['Pendiente', 'Pagado', 'Fallido'], default: 'Pendiente' },
+    transaccionId: { type: String, default: null }
+  },
   estado: {
     type: String,
     enum: ['Pendiente de pago', 'Pagada', 'En preparación', 'Enviada', 'Entregada', 'Cancelada'],

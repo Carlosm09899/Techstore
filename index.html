@@ -638,12 +638,12 @@
                                 </button>
                                 <button id="btnPagarTarjeta" type="button" class="payment-option">
                                     <span class="payment-icon card-icon"><i class="bi bi-credit-card"></i></span>
-                                    <span><strong>Tarjeta</strong><small>Crédito o débito · Simulado</small></span>
+                                    <span><strong>Tarjeta</strong><small>Crédito o débito · Stripe</small></span>
                                     <i class="bi bi-chevron-right payment-arrow ms-auto"></i>
                                 </button>
                                 <button id="btnPagarPayPal" type="button" class="payment-option">
                                     <span class="payment-icon paypal-icon"><i class="bi bi-paypal"></i></span>
-                                    <span><strong>PayPal</strong><small>Paga de forma rápida · Simulado</small></span>
+                                    <span><strong>PayPal</strong><small>Paga de forma rápida · Sandbox</small></span>
                                     <i class="bi bi-chevron-right payment-arrow ms-auto"></i>
                                 </button>
                             </div>
@@ -702,7 +702,7 @@
 
                     <h6>2. Métodos de pago y seguridad</h6>
                     <ul>
-                        <li>Los pagos se gestionan mediante los métodos disponibles en el checkout. En esta versión, las opciones de tarjeta y PayPal son simuladas para fines del proyecto.</li>
+                        <li>Los pagos con tarjeta se procesan mediante Stripe y los pagos con PayPal utilizan el entorno sandbox. Paynet genera una referencia para pago en efectivo.</li>
                         <li>La Tienda no solicita ni almacena directamente datos completos de tarjetas bancarias.</li>
                         <li>Al confirmar la compra, el cliente declara que los fondos utilizados son de procedencia lícita y que está autorizado para utilizar el método de pago seleccionado.</li>
                     </ul>

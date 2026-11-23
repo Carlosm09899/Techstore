@@ -19,6 +19,71 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 
+async function proveedorRequest(url, options = {}) {
+  const respuesta = await fetch(url, options);
+  const texto = await respuesta.text();
+  let data = {};
+  try {
+    data = texto ? JSON.parse(texto) : {};
+  } catch {
+    data = { message: texto };
+  }
+  if (!respuesta.ok) {
+    const mensaje = data.error?.message
+      || data.error_description
+      || data.message
+      || 'No se pudo comunicar con el proveedor de pagos';
+    const error = new Error(mensaje);
+    error.status = respuesta.status;
+    throw error;
+  }
+  return data;
+}
+
+async function calcularTotalCheckout(userId, items) {
+  if (!Array.isArray(items) || items.length === 0) {
+    throw Object.assign(new Error('El carrito está vacío'), { status: 400 });
+  }
+  if (items.some((item) => !item || typeof item !== 'object'
+    || !mongoose.Types.ObjectId.isValid(item.productoId)
+    || !mongoose.Types.ObjectId.isValid(item.equipoId))) {
+    throw Object.assign(new Error('El carrito contiene un producto o equipo no válido'), { status: 400 });
+  }
+
+  const user = await User.findById(userId).select('equipos');
+  if (!user) throw Object.assign(new Error('La sesión no es válida'), { status: 401 });
+
+  const productos = await Producto.find({
+    _id: { $in: items.map((item) => item.productoId) },
+    activo: true
+  }).lean();
+
+  let total = 0;
+  for (const item of items) {
+    const cantidad = Number(item.cantidad);
+    const producto = productos.find((elemento) => String(elemento._id) === String(item.productoId));
+    const equipo = user.equipos.id(item.equipoId);
+    if (!producto || !equipo) {
+      throw Object.assign(new Error('Un producto o equipo del carrito ya no está disponible'), { status: 409 });
+    }
+    if (!Number.isInteger(cantidad) || cantidad < 1) {
+      throw Object.assign(new Error('La cantidad de un producto no es válida'), { status: 400 });
+    }
+    if (!Number.isFinite(producto.precio) || Number(item.precio) !== Number(producto.precio)) {
+      throw Object.assign(new Error(`El precio de ${producto.nombre} cambió. Actualiza tu carrito antes de continuar`), { status: 409 });
+    }
+    if (!Number.isFinite(producto.stock) || producto.stock < cantidad) {
+      throw Object.assign(new Error(`No hay stock suficiente para ${producto.nombre}`), { status: 409 });
+    }
+    const compatibilidad = validarCompatibilidadProducto(producto, equipo);
+    if (!compatibilidad.ok) {
+      throw Object.assign(new Error(`${producto.nombre}: ${compatibilidad.message}`), { status: 409 });
+    }
+    total += producto.precio * cantidad;
+  }
+  return { total, currency: 'MXN' };
+}
+
 // 1. CONEXIÓN A MONGODB ATLAS
 const MONGO_URI = process.env.MONGODB_URI;
 
@@ -408,12 +473,174 @@ app.post('/api/productos/:productoId/resenas', async (req, res) => {
   }
 });
 
+app.post('/api/payments/stripe/create-session', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(503).json({ message: 'Stripe no está configurado en el servidor' });
+    }
+
+    const { items, envio } = req.body;
+    const { total } = await calcularTotalCheckout(userId, items);
+    if (!envio || typeof envio !== 'object') {
+      return res.status(400).json({ message: 'Los datos de envío son obligatorios' });
+    }
+
+    const baseUrl = (process.env.API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const params = new URLSearchParams({
+      mode: 'payment',
+      'line_items[0][price_data][currency]': 'mxn',
+      'line_items[0][price_data][unit_amount]': String(Math.round(total * 100)),
+      'line_items[0][price_data][product_data][name]': 'Compra TechStore',
+      'line_items[0][quantity]': '1',
+      success_url: `${baseUrl}/?payment=stripe&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/?payment=cancelled`,
+      'payment_intent_data[metadata][userId]': String(userId),
+      'metadata[userId]': String(userId)
+    });
+
+    const session = await proveedorRequest('https://api.stripe.com/v1/checkout/sessions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params
+    });
+
+    res.json({ url: session.url });
+  } catch (error) {
+    console.error('Error al crear sesión de Stripe:', error.message);
+    res.status(error.status || 500).json({ message: error.message || 'No se pudo iniciar el pago con Stripe' });
+  }
+});
+
+app.get('/api/payments/stripe/verify', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(503).json({ message: 'Stripe no está configurado en el servidor' });
+    }
+    const sessionId = String(req.query.session_id || '').trim();
+    if (!sessionId) return res.status(400).json({ message: 'Falta el identificador de la sesión de Stripe' });
+
+    const session = await proveedorRequest(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}?expand[]=payment_intent`, {
+      headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }
+    });
+    if (session.payment_status !== 'paid'
+      || String(session.metadata?.userId || '') !== String(userId)
+      || (session.payment_intent && typeof session.payment_intent === 'object' && session.payment_intent.status !== 'succeeded')) {
+      return res.status(409).json({ message: 'El pago con tarjeta todavía no está confirmado' });
+    }
+
+    const transaccionId = typeof session.payment_intent === 'object'
+      ? session.payment_intent.id
+      : session.payment_intent;
+    res.json({ verified: true, paymentId: sessionId, transactionId: transaccionId || sessionId });
+  } catch (error) {
+    console.error('Error al verificar pago de Stripe:', error.message);
+    res.status(error.status || 500).json({ message: error.message || 'No se pudo verificar el pago con Stripe' });
+  }
+});
+
+app.post('/api/payments/paypal/create-order', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return res.status(503).json({ message: 'PayPal no está configurado en el servidor' });
+    }
+
+    const { items } = req.body;
+    const { total } = await calcularTotalCheckout(userId, items);
+    const apiBase = (process.env.PAYPAL_API_BASE_URL || 'https://api-m.sandbox.paypal.com').replace(/\/$/, '');
+    const basic = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
+    const token = await proveedorRequest(`${apiBase}/v1/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basic}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'grant_type=client_credentials'
+    });
+    const baseUrl = (process.env.API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const paypalOrder = await proveedorRequest(`${apiBase}/v2/checkout/orders`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        intent: 'CAPTURE',
+        purchase_units: [{
+          custom_id: String(userId),
+          description: 'Compra TechStore',
+          amount: { currency_code: 'MXN', value: total.toFixed(2) }
+        }],
+        application_context: {
+          brand_name: 'TechStore',
+          user_action: 'PAY_NOW',
+          return_url: `${baseUrl}/?payment=paypal`,
+          cancel_url: `${baseUrl}/?payment=cancelled`
+        }
+      })
+    });
+    const approvalUrl = (paypalOrder.links || []).find((link) => link.rel === 'approve')?.href;
+    if (!approvalUrl) throw new Error('PayPal no devolvió una URL de aprobación');
+    res.json({ id: paypalOrder.id, url: approvalUrl });
+  } catch (error) {
+    console.error('Error al crear orden de PayPal:', error.message);
+    res.status(error.status || 500).json({ message: error.message || 'No se pudo iniciar el pago con PayPal' });
+  }
+});
+
+app.post('/api/payments/paypal/capture', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET) {
+      return res.status(503).json({ message: 'PayPal no está configurado en el servidor' });
+    }
+    const orderId = String(req.body.orderId || '').trim();
+    if (!orderId) return res.status(400).json({ message: 'Falta el identificador de la orden de PayPal' });
+
+    const apiBase = (process.env.PAYPAL_API_BASE_URL || 'https://api-m.sandbox.paypal.com').replace(/\/$/, '');
+    const basic = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
+    const token = await proveedorRequest(`${apiBase}/v1/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${basic}`,
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'grant_type=client_credentials'
+    });
+    const captured = await proveedorRequest(`${apiBase}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+        'Content-Type': 'application/json'
+      },
+      body: '{}'
+    });
+    if (captured.status !== 'COMPLETED') {
+      return res.status(409).json({ message: 'El pago con PayPal todavía no fue completado' });
+    }
+    const captureId = captured.purchase_units?.[0]?.payments?.captures?.find((capture) => capture.status === 'COMPLETED')?.id;
+    res.json({ verified: true, paymentId: orderId, transactionId: captureId || orderId });
+  } catch (error) {
+    console.error('Error al capturar pago de PayPal:', error.message);
+    res.status(error.status || 500).json({ message: error.message || 'No se pudo capturar el pago con PayPal' });
+  }
+});
+
 app.post('/api/orders', async (req, res) => {
   try {
     const userId = obtenerIdUsuario(req, res);
     if (!userId) return;
 
-    const { items, envio, metodoPago } = req.body;
+    const { items, envio, metodoPago, paymentId, transactionId } = req.body;
     const metodoPagoSeleccionado = String(metodoPago || 'Paynet').trim() || 'Paynet';
     const metodosPagoPermitidos = ['Paynet', 'Tarjeta', 'PayPal'];
 
@@ -422,6 +649,58 @@ app.post('/api/orders', async (req, res) => {
     }
     if (!metodosPagoPermitidos.includes(metodoPagoSeleccionado)) {
       return res.status(400).json({ message: 'El método de pago no es válido' });
+    }
+
+    if (metodoPagoSeleccionado === 'Tarjeta') {
+      if (!process.env.STRIPE_SECRET_KEY || !String(paymentId || '').trim()) {
+        return res.status(402).json({ message: 'El pago con tarjeta no ha sido confirmado' });
+      }
+      const session = await proveedorRequest(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(paymentId)}?expand[]=payment_intent`, {
+        headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` }
+      });
+      if (session.payment_status !== 'paid'
+        || String(session.metadata?.userId || '') !== String(userId)
+        || (session.payment_intent && typeof session.payment_intent === 'object' && session.payment_intent.status !== 'succeeded')) {
+        return res.status(402).json({ message: 'El pago con tarjeta no ha sido confirmado' });
+      }
+    }
+
+    if (metodoPagoSeleccionado === 'PayPal') {
+      if (!process.env.PAYPAL_CLIENT_ID || !process.env.PAYPAL_CLIENT_SECRET || !String(paymentId || '').trim()) {
+        return res.status(402).json({ message: 'El pago con PayPal no ha sido confirmado' });
+      }
+      const apiBase = (process.env.PAYPAL_API_BASE_URL || 'https://api-m.sandbox.paypal.com').replace(/\/$/, '');
+      const basic = Buffer.from(`${process.env.PAYPAL_CLIENT_ID}:${process.env.PAYPAL_CLIENT_SECRET}`).toString('base64');
+      const token = await proveedorRequest(`${apiBase}/v1/oauth2/token`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${basic}`,
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'grant_type=client_credentials'
+      });
+      const captured = await proveedorRequest(`${apiBase}/v2/checkout/orders/${encodeURIComponent(paymentId)}`, {
+        headers: { Authorization: `Bearer ${token.access_token}` }
+      });
+      if (captured.status !== 'COMPLETED') {
+        return res.status(402).json({ message: 'El pago con PayPal no ha sido confirmado' });
+      }
+      const customId = captured.purchase_units?.[0]?.custom_id;
+      if (customId && String(customId) !== String(userId)) {
+        return res.status(403).json({ message: 'La orden de PayPal no pertenece a esta cuenta' });
+      }
+    }
+
+    if (metodoPagoSeleccionado !== 'Paynet') {
+      const ordenExistente = await Order.findOne({ paymentProviderId: String(paymentId) }).select('_id').lean();
+      if (ordenExistente) {
+        return res.status(200).json({
+          message: 'Compra ya registrada',
+          orderId: ordenExistente._id,
+          total: (await Order.findById(ordenExistente._id).select('total').lean()).total,
+          metodoPago: metodoPagoSeleccionado
+        });
+      }
     }
 
     const camposEnvio = ['nombre', 'telefono', 'direccion', 'ciudad', 'estado', 'codigoPostal'];
@@ -514,6 +793,11 @@ app.post('/api/orders', async (req, res) => {
       items: ordenItems,
       total,
       metodoPago: metodoPagoSeleccionado,
+      paymentProviderId: metodoPagoSeleccionado === 'Paynet' ? null : String(paymentId),
+      pago: {
+        estado: metodoPagoSeleccionado === 'Paynet' ? 'Pendiente' : 'Pagado',
+        transaccionId: metodoPagoSeleccionado === 'Paynet' ? null : String(transactionId || paymentId)
+      },
       estado: metodoPagoSeleccionado === 'Paynet' ? 'Pendiente de pago' : 'Pagada',
       envio: camposEnvio.reduce((datos, campo) => {
         datos[campo] = String(envio[campo]).trim();
