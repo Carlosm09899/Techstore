@@ -1738,135 +1738,135 @@ function obtenerDatosEnvio() {
     };
 }
 
+async function iniciarPagoStripe(datosEnvio) {
+    const boton = document.getElementById('btnPagarTarjeta');
+    const mensaje = document.getElementById('msgCheckout');
+    boton.disabled = true;
+    mensaje.textContent = 'Redirigiendo a Stripe...';
+    mensaje.className = 'small text-center fw-medium mt-3 text-info';
+    sessionStorage.setItem('techstorePendingCheckout', JSON.stringify({
+        metodoPago: 'Tarjeta',
+        items: carrito,
+        envio: datosEnvio
+    }));
+    try {
+        const respuesta = await fetch('/api/payments/stripe/create-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ items: carrito, envio: datosEnvio })
+        });
+        const data = await respuesta.json();
+        if (!respuesta.ok) throw new Error(data.message || 'No se pudo iniciar el pago con Stripe');
+        window.location.href = data.url;
+    } catch (error) {
+        sessionStorage.removeItem('techstorePendingCheckout');
+        mensaje.textContent = error.message;
+        mensaje.className = 'small text-center fw-medium mt-3 text-danger';
+        boton.disabled = false;
+    }
+}
+
+async function iniciarPagoPayPal(datosEnvio) {
+    const boton = document.getElementById('btnPagarPayPal');
+    const mensaje = document.getElementById('msgCheckout');
+    boton.disabled = true;
+    mensaje.textContent = 'Redirigiendo a PayPal Sandbox...';
+    mensaje.className = 'small text-center fw-medium mt-3 text-info';
+    sessionStorage.setItem('techstorePendingCheckout', JSON.stringify({
+        metodoPago: 'PayPal',
+        items: carrito,
+        envio: datosEnvio
+    }));
+    try {
+        const respuesta = await fetch('/api/payments/paypal/create-order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ items: carrito, envio: datosEnvio })
+        });
+        const data = await respuesta.json();
+        if (!respuesta.ok) throw new Error(data.message || 'No se pudo iniciar el pago con PayPal');
+        window.location.href = data.url;
+    } catch (error) {
+        sessionStorage.removeItem('techstorePendingCheckout');
+        mensaje.textContent = error.message;
+        mensaje.className = 'small text-center fw-medium mt-3 text-danger';
+        boton.disabled = false;
+    }
+}
+
+async function finalizarPagoExterno() {
+    const parametros = new URLSearchParams(window.location.search);
+    const proveedor = parametros.get('payment');
+    if (!proveedor || !['stripe', 'paypal'].includes(proveedor)) return;
+
+    const pendienteTexto = sessionStorage.getItem('techstorePendingCheckout');
+    if (!pendienteTexto) {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        return;
+    }
+    const pendiente = JSON.parse(pendienteTexto);
+    let paymentId;
+    let transactionId;
+
+    try {
+        if (proveedor === 'stripe') {
+            paymentId = parametros.get('session_id');
+            if (!paymentId) throw new Error('No se recibió la sesión de pago de Stripe');
+            const respuesta = await fetch(`/api/payments/stripe/verify?session_id=${encodeURIComponent(paymentId)}`, {
+                credentials: 'include'
+            });
+            const data = await respuesta.json();
+            if (!respuesta.ok) throw new Error(data.message || 'No se pudo verificar el pago con Stripe');
+            transactionId = data.transactionId;
+        } else {
+            paymentId = parametros.get('paypal_order_id') || parametros.get('token');
+            if (!paymentId) throw new Error('No se recibió la orden de pago de PayPal');
+            const respuesta = await fetch('/api/payments/paypal/capture', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ orderId: paymentId })
+            });
+            const data = await respuesta.json();
+            if (!respuesta.ok) throw new Error(data.message || 'No se pudo capturar el pago con PayPal');
+            transactionId = data.transactionId;
+        }
+
+        const respuestaOrden = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                items: pendiente.items,
+                envio: pendiente.envio,
+                metodoPago: pendiente.metodoPago,
+                paymentId,
+                transactionId
+            })
+        });
+        const dataOrden = await respuestaOrden.json();
+        if (!respuestaOrden.ok) throw new Error(dataOrden.message || 'El pago se confirmó, pero no se pudo registrar la compra');
+
+        sessionStorage.removeItem('techstorePendingCheckout');
+        carrito = [];
+        guardarCarrito();
+        actualizarIndicadorCarrito();
+        renderizarCarrito();
+        window.history.replaceState({}, document.title, window.location.pathname);
+        alert(`Pago confirmado. Folio: ${dataOrden.orderId}`);
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
 async function confirmarCompraPaynet(metodoPago, idBoton) {
     if (!carrito.length) {
         const mensajeCarritoVacio = document.getElementById('msgCheckout');
         mensajeCarritoVacio.textContent = 'La compra ya fue procesada. Puedes descargar tu comprobante o cerrar esta ventana.';
         mensajeCarritoVacio.className = 'small text-center fw-medium mt-3 text-info';
         return;
-    }
-
-    async function iniciarPagoStripe(datosEnvio) {
-        const boton = document.getElementById('btnPagarTarjeta');
-        const mensaje = document.getElementById('msgCheckout');
-        boton.disabled = true;
-        mensaje.textContent = 'Redirigiendo a Stripe...';
-        mensaje.className = 'small text-center fw-medium mt-3 text-info';
-        sessionStorage.setItem('techstorePendingCheckout', JSON.stringify({
-            metodoPago: 'Tarjeta',
-            items: carrito,
-            envio: datosEnvio
-        }));
-        try {
-            const respuesta = await fetch('/api/payments/stripe/create-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ items: carrito, envio: datosEnvio })
-            });
-            const data = await respuesta.json();
-            if (!respuesta.ok) throw new Error(data.message || 'No se pudo iniciar el pago con Stripe');
-            window.location.href = data.url;
-        } catch (error) {
-            sessionStorage.removeItem('techstorePendingCheckout');
-            mensaje.textContent = error.message;
-            mensaje.className = 'small text-center fw-medium mt-3 text-danger';
-            boton.disabled = false;
-        }
-    }
-
-    async function iniciarPagoPayPal(datosEnvio) {
-        const boton = document.getElementById('btnPagarPayPal');
-        const mensaje = document.getElementById('msgCheckout');
-        boton.disabled = true;
-        mensaje.textContent = 'Redirigiendo a PayPal Sandbox...';
-        mensaje.className = 'small text-center fw-medium mt-3 text-info';
-        sessionStorage.setItem('techstorePendingCheckout', JSON.stringify({
-            metodoPago: 'PayPal',
-            items: carrito,
-            envio: datosEnvio
-        }));
-        try {
-            const respuesta = await fetch('/api/payments/paypal/create-order', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ items: carrito, envio: datosEnvio })
-            });
-            const data = await respuesta.json();
-            if (!respuesta.ok) throw new Error(data.message || 'No se pudo iniciar el pago con PayPal');
-            window.location.href = data.url;
-        } catch (error) {
-            sessionStorage.removeItem('techstorePendingCheckout');
-            mensaje.textContent = error.message;
-            mensaje.className = 'small text-center fw-medium mt-3 text-danger';
-            boton.disabled = false;
-        }
-    }
-
-    async function finalizarPagoExterno() {
-        const parametros = new URLSearchParams(window.location.search);
-        const proveedor = parametros.get('payment');
-        if (!proveedor || !['stripe', 'paypal'].includes(proveedor)) return;
-
-        const pendienteTexto = sessionStorage.getItem('techstorePendingCheckout');
-        if (!pendienteTexto) {
-            window.history.replaceState({}, document.title, window.location.pathname);
-            return;
-        }
-        const pendiente = JSON.parse(pendienteTexto);
-        let paymentId;
-        let transactionId;
-
-        try {
-            if (proveedor === 'stripe') {
-                paymentId = parametros.get('session_id');
-                if (!paymentId) throw new Error('No se recibió la sesión de pago de Stripe');
-                const respuesta = await fetch(`/api/payments/stripe/verify?session_id=${encodeURIComponent(paymentId)}`, {
-                    credentials: 'include'
-                });
-                const data = await respuesta.json();
-                if (!respuesta.ok) throw new Error(data.message || 'No se pudo verificar el pago con Stripe');
-                transactionId = data.transactionId;
-            } else {
-                paymentId = parametros.get('paypal_order_id') || parametros.get('token');
-                if (!paymentId) throw new Error('No se recibió la orden de pago de PayPal');
-                const respuesta = await fetch('/api/payments/paypal/capture', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ orderId: paymentId })
-                });
-                const data = await respuesta.json();
-                if (!respuesta.ok) throw new Error(data.message || 'No se pudo capturar el pago con PayPal');
-                transactionId = data.transactionId;
-            }
-
-            const respuestaOrden = await fetch('/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({
-                    items: pendiente.items,
-                    envio: pendiente.envio,
-                    metodoPago: pendiente.metodoPago,
-                    paymentId,
-                    transactionId
-                })
-            });
-            const dataOrden = await respuestaOrden.json();
-            if (!respuestaOrden.ok) throw new Error(dataOrden.message || 'El pago se confirmó, pero no se pudo registrar la compra');
-
-            sessionStorage.removeItem('techstorePendingCheckout');
-            carrito = [];
-            guardarCarrito();
-            actualizarIndicadorCarrito();
-            renderizarCarrito();
-            window.history.replaceState({}, document.title, window.location.pathname);
-            alert(`Pago confirmado. Folio: ${dataOrden.orderId}`);
-        } catch (error) {
-            alert(error.message);
-        }
     }
 
     const datosEnvio = obtenerDatosEnvio();
