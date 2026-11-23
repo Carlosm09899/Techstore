@@ -15,6 +15,7 @@ let resultadoCompatibilidadActual = null;
 let carrito = [];
 let ultimaCompraComprobante = null;
 let compraConfirmadaCheckout = false;
+let intervaloSensor = null;
 
 function mostrarUsuario(user) {
     sesionUsuario = user;
@@ -23,6 +24,7 @@ function mostrarUsuario(user) {
     cuentaUsuario.removeAttribute('data-bs-target');
     cuentaUsuario.setAttribute('data-bs-toggle', 'dropdown');
     cuentaUsuario.title = `Cuenta de ${user.name}`;
+    document.getElementById('menuAlmacen').classList.toggle('d-none', !user.isAdmin);
     cargarCarrito();
     actualizarIndicadorCarrito();
 }
@@ -37,6 +39,8 @@ function mostrarCuentaInicial() {
     sesionUsuario = null;
     equiposUsuario = [];
     carrito = [];
+    detenerLecturasSensor();
+    document.getElementById('menuAlmacen').classList.add('d-none');
     cuentaUsuario.innerHTML = '<i class="bi bi-person"></i>';
     cuentaUsuario.classList.remove('account-logged-in');
     cuentaUsuario.setAttribute('data-bs-toggle', 'modal');
@@ -1098,6 +1102,67 @@ document.getElementById('cerrarSesion').addEventListener('click', async () => {
     });
     mostrarCuentaInicial();
 });
+
+async function cargarLecturasSensor() {
+    const mensaje = document.getElementById('msgSensor');
+    const estado = document.getElementById('estadoSensor');
+    try {
+        const respuesta = await fetch('/api/sensor/dht22', { credentials: 'include' });
+        const data = await respuesta.json();
+        if (!respuesta.ok) throw new Error(data.message || 'No se pudieron obtener las lecturas');
+
+        const lectura = data.actual || {};
+        document.getElementById('sensorTemperatura').textContent =
+            Number.isFinite(Number(lectura.temperatura)) ? `${Number(lectura.temperatura).toFixed(1)} °C` : '-- °C';
+        document.getElementById('sensorHumedad').textContent =
+            Number.isFinite(Number(lectura.humedad)) ? `${Number(lectura.humedad).toFixed(1)} %` : '-- %';
+        document.getElementById('sensorDispositivo').textContent = lectura.dispositivo || 'ESP32-Principal';
+        document.getElementById('sensorActualizado').textContent =
+            lectura.createdAt ? new Date(lectura.createdAt).toLocaleString('es-MX') : 'Sin registros';
+
+        estado.className = 'sensor-status sensor-status-online';
+        estado.innerHTML = '<i class="bi bi-circle-fill me-1"></i>En línea';
+        mensaje.classList.add('d-none');
+
+        const historial = Array.isArray(data.historial) ? data.historial.slice(-10).reverse() : [];
+        const contenedor = document.getElementById('listaLecturasSensor');
+        contenedor.innerHTML = historial.length
+            ? historial.map((item) => `
+                <div class="sensor-reading-row">
+                    <span>${item.createdAt ? new Date(item.createdAt).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' }) : '--:--'}</span>
+                    <strong>${Number(item.temperatura).toFixed(1)} °C</strong>
+                    <strong>${Number(item.humedad).toFixed(1)} %</strong>
+                </div>
+            `).join('')
+            : '<p class="text-muted text-center mb-0">Aún no hay lecturas registradas.</p>';
+    } catch (error) {
+        estado.className = 'sensor-status sensor-status-offline';
+        estado.innerHTML = '<i class="bi bi-circle-fill me-1"></i>Sin datos';
+        mensaje.textContent = error.message;
+        mensaje.className = 'alert alert-danger py-2 mb-3';
+    }
+}
+
+function iniciarLecturasSensor() {
+    detenerLecturasSensor();
+    cargarLecturasSensor();
+    intervaloSensor = window.setInterval(cargarLecturasSensor, 5000);
+}
+
+function detenerLecturasSensor() {
+    if (intervaloSensor) {
+        window.clearInterval(intervaloSensor);
+        intervaloSensor = null;
+    }
+}
+
+document.getElementById('abrirAlmacen').addEventListener('click', () => {
+    if (!sesionUsuario?.isAdmin) return;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAlmacen')).show();
+});
+
+document.getElementById('modalAlmacen').addEventListener('show.bs.modal', iniciarLecturasSensor);
+document.getElementById('modalAlmacen').addEventListener('hidden.bs.modal', detenerLecturasSensor);
 
 // Función para determinar el icono representativo estilo Apple Hardware
 function obtenerIconoProducto(producto) {

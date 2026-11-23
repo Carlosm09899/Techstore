@@ -1569,6 +1569,110 @@ footer hr {
     color: var(--color-iris-blue) !important;
 }
 
+.sensor-status {
+    color: var(--color-pewter);
+    font-size: 12px;
+    white-space: nowrap;
+}
+
+.sensor-status i {
+    font-size: 8px;
+}
+
+.sensor-status-online {
+    color: #1d9e67;
+}
+
+.sensor-status-offline {
+    color: #d84a4a;
+}
+
+.sensor-card {
+    min-height: 150px;
+    border-radius: var(--radius-card);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 24px;
+}
+
+.sensor-temperature {
+    background: linear-gradient(145deg, #fff3ed, #ffe7d9);
+    color: #a33b12;
+}
+
+.sensor-humidity {
+    background: linear-gradient(145deg, #edf7ff, #d9efff);
+    color: #17699f;
+}
+
+.sensor-card-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, 0.75);
+    flex-shrink: 0;
+}
+
+.sensor-card-icon i {
+    font-size: 30px;
+}
+
+.sensor-card-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.sensor-card-value {
+    display: block;
+    font-size: 32px;
+    line-height: 1;
+}
+
+.sensor-chart-wrapper {
+    border: 1px solid var(--color-ash-veil);
+    border-radius: var(--radius-card);
+    padding: 18px;
+}
+
+.sensor-readings {
+    max-height: 230px;
+    overflow-y: auto;
+}
+
+.sensor-reading-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    border-top: 1px solid var(--color-ash-veil);
+    padding: 10px 4px;
+    font-size: 13px;
+}
+
+.sensor-reading-row:first-child {
+    border-top: 0;
+}
+
+.sensor-reading-row strong:last-child,
+.sensor-reading-row strong:nth-child(2) {
+    text-align: right;
+}
+
+@media (max-width: 575.98px) {
+    .sensor-card {
+        min-height: 120px;
+        padding: 18px;
+    }
+
+    .sensor-card-value {
+        font-size: 26px;
+    }
+}
+
 /* Responsive Queries */
 @media (max-width: 768px) {
     .navbar.apple-navbar,

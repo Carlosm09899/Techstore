@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 dotenv.config();
+
 const authRoutes = require('./routes/authRoutes');
 const User = require('./models/user');
 const Order = require('./models/order');
@@ -19,7 +20,6 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 
 // 1. CONEXIÓN A MONGODB ATLAS
-// (Reemplaza con tu usuario, contraseña y la URL de tu cluster)
 const MONGO_URI = process.env.MONGODB_URI;
 
 async function sincronizarCatalogo() {
@@ -49,7 +49,6 @@ mongoose.connect(MONGO_URI)
   .catch(err => console.error("Error de conexión:", err));
 
 // 2. CREAR EL MODELO / ESQUEMA DE PRODUCTOS
-// Esto le dice a Mongoose cómo buscar los datos en la colección "productos"
 const productoSchema = new mongoose.Schema({
   nombre: String,
   categoria: String,
@@ -83,6 +82,18 @@ const productoSchema = new mongoose.Schema({
 
 const Producto = mongoose.model('Producto', productoSchema, 'productos');
 
+// ESQUEMA PARA LECTURAS DEL SENSOR DHT22 (ESP32)
+const lecturaDhtSchema = new mongoose.Schema({
+  temperatura: { type: Number, required: true },
+  humedad: { type: Number, required: true },
+  dispositivo: { type: String, default: 'ESP32-Principal' }
+}, { timestamps: true });
+
+// Borra automáticamente lecturas mayores a 7 días (604800 seg) para ahorrar espacio en Atlas
+lecturaDhtSchema.index({ createdAt: 1 }, { expireAfterSeconds: 604800 });
+
+const LecturaDHT = mongoose.model('LecturaDHT', lecturaDhtSchema, 'lecturas_dht22');
+
 function normalizarTexto(texto) {
   return String(texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
 }
@@ -104,7 +115,6 @@ function obtenerReglasCompatibilidad(producto) {
   const catProd = String(producto.categoria || '').toUpperCase();
   const nombreProd = String(producto.nombre || '').toUpperCase();
 
-  // Inferencia inteligente si no está explícito en compatibilidad
   if (!tipoComponente || tipoComponente === 'OTRO') {
     if (tipoProd === 'RAM' || nombreProd.includes('RAM') || catProd.includes('RAM') || nombreProd.match(/\bDDR[345]\b/)) {
       tipoComponente = 'RAM';
@@ -185,14 +195,12 @@ function validarCompatibilidadProducto(producto, equipo) {
 
     const ramTiposProducto = reglas.ramTipos.map((r) => String(r || '').trim().toUpperCase());
 
-    // Si no logramos inferir el tipo de RAM del producto, permitimos con aviso
     if (!ramTiposProducto.length) {
       return { ok: true, message: `Memoria compatible con equipos estándar (${ramEquipo})` };
     }
 
     const esCompatible = ramTiposProducto.some((ram) => {
       if (ram === ramEquipo) return true;
-      // Compatibilidad por generación (ej: DDR4 y LPDDR4 en placas compatibles)
       if (ramEquipo.includes('DDR4') && ram.includes('DDR4')) return true;
       if (ramEquipo.includes('DDR5') && ram.includes('DDR5')) return true;
       if (ramEquipo.includes('DDR3') && ram.includes('DDR3')) return true;
@@ -211,7 +219,6 @@ function validarCompatibilidadProducto(producto, equipo) {
     }
 
     const tiposEquipo = tiposAlmacenamiento(almacenamientoEquipo);
-    // Un equipo de escritorio (PC) siempre dispone de puertos SATA
     if (equipo.tipo === 'PC' && !tiposEquipo.includes('SATA_25')) {
       tiposEquipo.push('SATA_25');
     }
@@ -250,7 +257,52 @@ function obtenerIdUsuario(req, res) {
   }
 }
 
-// 3. CREAR LA RUTA (ENDPOINT) PARA OBTENER LOS PRODUCTOS
+// Middlewares de seguridad para Telemetría IoT
+function validarSensorApiKey(req, res, next) {
+  const apiKey = req.headers['x-api-key'];
+  if (!process.env.SENSOR_API_KEY || apiKey !== process.env.SENSOR_API_KEY) {
+    return res.status(401).json({ message: 'API Key del sensor inválida o no configurada' });
+  }
+  next();
+}
+
+async function verificarAdmin(req, res, next) {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = req.cookies.auth_token || (authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null);
+
+    if (!token || !process.env.JWT_SECRET) {
+      return res.status(401).json({ message: 'No autenticado' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const usuario = await User.findById(decoded.id).select('role rol isAdmin email').lean();
+
+    if (!usuario) {
+      return res.status(401).json({ message: 'Usuario no válido' });
+    }
+
+    const adminEmail = process.env.ADMIN_EMAIL
+      ? String(process.env.ADMIN_EMAIL).trim().toLowerCase()
+      : '';
+    const esAdmin =
+      usuario.isAdmin === true ||
+      usuario.role === 'admin' ||
+      usuario.rol === 'admin' ||
+      Boolean(adminEmail && String(usuario.email || '').trim().toLowerCase() === adminEmail);
+
+    if (!esAdmin) {
+      return res.status(403).json({ message: 'Acceso denegado: solo administradores' });
+    }
+
+    req.adminUser = usuario;
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Sesión expirada o inválida' });
+  }
+}
+
+// 3. CREAR LAS RUTAS (ENDPOINTS) PARA PRODUCTOS, RESEÑAS Y ÓRDENES
 app.get('/api/productos', async (req, res) => {
   try {
     const filtro = { activo: true };
@@ -262,7 +314,7 @@ app.get('/api/productos', async (req, res) => {
     if (!productos || productos.length === 0) {
       productos = productosIniciales
         .filter((prod) => !filtro.categoria || prod.categoria === filtro.categoria)
-        .map((prod, idx) => ({
+        .map((prod) => ({
           ...prod,
           _id: new mongoose.Types.ObjectId(),
           stock: prod.stock || 15,
@@ -289,7 +341,7 @@ app.get('/api/productos', async (req, res) => {
       compatibilidad: obtenerReglasCompatibilidad(producto),
       resenas: resumenPorProducto.get(String(producto._id)) || { promedio: 0, total: 0 }
     }));
-    res.json(productosConCompatibilidad); // Los devuelve en formato JSON
+    res.json(productosConCompatibilidad);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener los productos" });
   }
@@ -497,7 +549,53 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
-// 4. ENCENDER EL SERVIDOR EN EL PUERTO 3000
+// 4. RUTAS DE TELEMETRÍA SENSOR DHT22 (ESP32 -> MONGODB -> SOLO ADMIN)
+app.post('/api/sensor/dht22', validarSensorApiKey, async (req, res) => {
+  try {
+    const temperatura = Number(req.body.temperatura);
+    const humedad = Number(req.body.humedad);
+    const dispositivo = String(req.body.dispositivo || 'ESP32-Principal').trim();
+
+    if (!Number.isFinite(temperatura) || !Number.isFinite(humedad)) {
+      return res.status(400).json({ message: 'Temperatura y humedad deben ser números válidos' });
+    }
+
+    const nuevaLectura = await LecturaDHT.create({
+      temperatura,
+      humedad,
+      dispositivo
+    });
+
+    res.status(201).json({
+      message: 'Lectura registrada',
+      lectura: nuevaLectura
+    });
+  } catch (error) {
+    console.error('Error al guardar lectura DHT22:', error.message);
+    res.status(500).json({ message: 'Error interno al registrar lectura' });
+  }
+});
+
+app.get('/api/sensor/dht22', verificarAdmin, async (req, res) => {
+  try {
+    const historial = await LecturaDHT.find()
+      .sort({ createdAt: -1 })
+      .limit(20)
+      .lean();
+
+    const actual = historial[0] || { temperatura: 0, humedad: 0, createdAt: null };
+
+    res.json({
+      actual,
+      historial: historial.reverse()
+    });
+  } catch (error) {
+    console.error('Error al obtener lecturas DHT22:', error.message);
+    res.status(500).json({ message: 'Error al obtener lecturas del sensor' });
+  }
+});
+
+// 5. ENCENDER EL SERVIDOR EN EL PUERTO 3000
 const PORT = process.env.PORT || 3000;
 const HOST = '0.0.0.0';
 app.listen(PORT, HOST, () => {

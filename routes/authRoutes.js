@@ -7,6 +7,16 @@ const { sendVerificationEmail } = require('../utils/sedEmails');
 
 const router = express.Router();
 
+function esUsuarioAdmin(user) {
+  const adminEmail = process.env.ADMIN_EMAIL
+    ? String(process.env.ADMIN_EMAIL).trim().toLowerCase()
+    : '';
+  return user.isAdmin === true ||
+    user.role === 'admin' ||
+    user.rol === 'admin' ||
+    Boolean(adminEmail && String(user.email || '').trim().toLowerCase() === adminEmail);
+}
+
 function obtenerUsuarioAutenticado(req, res) {
   if (!req.cookies.auth_token || !process.env.JWT_SECRET) {
     res.status(401).json({ message: 'No hay una sesión activa' });
@@ -132,7 +142,11 @@ router.post('/login', async (req, res) => {
 
     res.json({
       message: 'Inicio de sesión exitoso',
-      user: { name: user.name, email: user.email }
+      user: {
+        name: user.name,
+        email: user.email,
+        isAdmin: esUsuarioAdmin(user)
+      }
     });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor al iniciar sesión', error: error.message });
@@ -146,13 +160,19 @@ router.get('/me', async (req, res) => {
     }
 
     const payload = jwt.verify(req.cookies.auth_token, process.env.JWT_SECRET);
-    const user = await User.findById(payload.id).select('name email');
+    const user = await User.findById(payload.id).select('name email role rol isAdmin');
 
     if (!user) {
       return res.status(401).json({ message: 'La sesión no es válida' });
     }
 
-    res.json({ user });
+    res.json({
+      user: {
+        name: user.name,
+        email: user.email,
+        isAdmin: esUsuarioAdmin(user)
+      }
+    });
   } catch (error) {
     res.status(401).json({ message: 'La sesión expiró' });
   }
