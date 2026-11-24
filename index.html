@@ -746,6 +746,41 @@
         </div>
     </div>
 
+    <!-- MODAL CONFIRMACION DE PAGO -->
+    <div class="modal fade" id="modalConfirmacionPago" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered payment-success-dialog">
+            <div class="modal-content payment-success-modal border-0">
+                <div class="modal-body text-center px-4 py-5">
+                    <div id="iconoConfirmacionPago" class="payment-success-icon mb-4">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+                    <h3 id="tituloConfirmacionPago" class="fw-bold mb-2">¡Pago confirmado!</h3>
+                    <p id="textoConfirmacionPago" class="text-muted mb-4">Tu compra se registró correctamente.</p>
+                    <div class="payment-success-details rounded-4 p-3 mb-4">
+                        <div class="d-flex justify-content-between gap-3 mb-2">
+                            <span class="text-muted">Folio</span>
+                            <strong id="folioConfirmacionPago">-</strong>
+                        </div>
+                        <div class="d-flex justify-content-between gap-3 mb-2">
+                            <span class="text-muted">Método</span>
+                            <strong id="metodoConfirmacionPago">-</strong>
+                        </div>
+                        <div class="d-flex justify-content-between gap-3">
+                            <span class="text-muted">Total</span>
+                            <strong id="totalConfirmacionPago">$0 MXN</strong>
+                        </div>
+                    </div>
+                    <button id="btnDescargarComprobantePago" type="button" class="btn btn-primary rounded-pill px-4 py-2 d-none mb-2">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Descargar comprobante
+                    </button>
+                    <button type="button" class="btn btn-light rounded-pill px-4 py-2 w-100" data-bs-dismiss="modal">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL ALMACEN - SOLO ADMINISTRADOR -->
     <div class="modal fade" id="modalAlmacen" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">

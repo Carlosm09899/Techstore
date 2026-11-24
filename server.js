@@ -310,12 +310,14 @@ function validarCompatibilidadProducto(producto, equipo) {
 }
 
 function obtenerIdUsuario(req, res) {
-  if (!req.cookies.auth_token || !process.env.JWT_SECRET) {
+  const authHeader = req.headers.authorization;
+  const token = req.cookies.auth_token || (authHeader && authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null);
+  if (!token || !process.env.JWT_SECRET) {
     res.status(401).json({ message: 'Debes iniciar sesión para confirmar la compra' });
     return null;
   }
   try {
-    return jwt.verify(req.cookies.auth_token, process.env.JWT_SECRET).id;
+    return jwt.verify(token, process.env.JWT_SECRET).id;
   } catch (error) {
     res.status(401).json({ message: 'La sesión expiró' });
     return null;
@@ -488,14 +490,21 @@ app.post('/api/payments/stripe/create-session', async (req, res) => {
     }
 
     const baseUrl = (process.env.API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const mobilePayment = req.body.platform === 'mobile';
+    const stripeSuccessUrl = mobilePayment
+      ? 'techstoremobile://payment/stripe?payment=stripe&session_id={CHECKOUT_SESSION_ID}'
+      : `${baseUrl}/?payment=stripe&session_id={CHECKOUT_SESSION_ID}`;
+    const stripeCancelUrl = mobilePayment
+      ? 'techstoremobile://payment/cancelled?payment=cancelled'
+      : `${baseUrl}/?payment=cancelled`;
     const params = new URLSearchParams({
       mode: 'payment',
       'line_items[0][price_data][currency]': 'mxn',
       'line_items[0][price_data][unit_amount]': String(Math.round(total * 100)),
       'line_items[0][price_data][product_data][name]': 'Compra TechStore',
       'line_items[0][quantity]': '1',
-      success_url: `${baseUrl}/?payment=stripe&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}/?payment=cancelled`,
+      success_url: stripeSuccessUrl,
+      cancel_url: stripeCancelUrl,
       'payment_intent_data[metadata][userId]': String(userId),
       'metadata[userId]': String(userId)
     });
@@ -566,6 +575,13 @@ app.post('/api/payments/paypal/create-order', async (req, res) => {
       body: 'grant_type=client_credentials'
     });
     const baseUrl = (process.env.API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+    const mobilePayment = req.body.platform === 'mobile';
+    const paypalReturnUrl = mobilePayment
+      ? 'techstoremobile://payment/paypal?payment=paypal'
+      : `${baseUrl}/?payment=paypal`;
+    const paypalCancelUrl = mobilePayment
+      ? 'techstoremobile://payment/cancelled?payment=cancelled'
+      : `${baseUrl}/?payment=cancelled`;
     const paypalOrder = await proveedorRequest(`${apiBase}/v2/checkout/orders`, {
       method: 'POST',
       headers: {
@@ -582,8 +598,8 @@ app.post('/api/payments/paypal/create-order', async (req, res) => {
         application_context: {
           brand_name: 'TechStore',
           user_action: 'PAY_NOW',
-          return_url: `${baseUrl}/?payment=paypal`,
-          cancel_url: `${baseUrl}/?payment=cancelled`
+          return_url: paypalReturnUrl,
+          cancel_url: paypalCancelUrl
         }
       })
     });
@@ -616,6 +632,13 @@ app.post('/api/payments/paypal/capture', async (req, res) => {
       },
       body: 'grant_type=client_credentials'
     });
+    const details = await proveedorRequest(`${apiBase}/v2/checkout/orders/${encodeURIComponent(orderId)}`, {
+      headers: { Authorization: `Bearer ${token.access_token}` }
+    });
+    const customId = details.purchase_units?.[0]?.custom_id;
+    if (customId && String(customId) !== String(userId)) {
+      return res.status(403).json({ message: 'La orden de PayPal no pertenece a esta cuenta' });
+    }
     const captured = await proveedorRequest(`${apiBase}/v2/checkout/orders/${encodeURIComponent(orderId)}/capture`, {
       method: 'POST',
       headers: {
@@ -634,6 +657,145 @@ app.post('/api/payments/paypal/capture', async (req, res) => {
     res.status(error.status || 500).json({ message: error.message || 'No se pudo capturar el pago con PayPal' });
   }
 });
+
+app.get('/api/cart', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    const user = await User.findById(userId).select('carrito');
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    const items = user.carrito || [];
+    const productIds = [...new Set(items.map(item => String(item.productId)))];
+    const products = await Producto.find({_id: {$in: productIds}, activo: true}).lean();
+    const validItems = items.filter(item => products.some(product => String(product._id) === String(item.productId)));
+    const total = validItems.reduce((sum, item) => {
+      const product = products.find(element => String(element._id) === String(item.productId));
+      return sum + (product ? product.precio * item.quantity : 0);
+    }, 0);
+    res.json({
+      cart: {
+        userId,
+        items: validItems.map(item => ({
+          productId: String(item.productId),
+          quantity: item.quantity,
+          equipmentId: item.equipmentId ? String(item.equipmentId) : undefined,
+          equipmentName: item.equipmentName,
+          compatibilityMessage: item.compatibilityMessage
+        })),
+        count: validItems.reduce((sum, item) => sum + item.quantity, 0),
+        total
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'No se pudo cargar el carrito' });
+  }
+});
+
+app.post('/api/cart/items', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    const {productId, quantity = 1, equipmentId, equipmentName, compatibilityMessage} = req.body;
+    if (!mongoose.Types.ObjectId.isValid(productId) || !Number.isInteger(quantity) || quantity < 1) {
+      return res.status(400).json({ message: 'El producto o la cantidad no son válidos' });
+    }
+    const product = await Producto.findOne({_id: productId, activo: true});
+    if (!product) return res.status(409).json({ message: 'El producto ya no está disponible' });
+    if (quantity > product.stock) return res.status(409).json({ message: 'No hay stock suficiente' });
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    const sameItem = user.carrito.find(item =>
+      String(item.productId) === String(productId) &&
+      String(item.equipmentId || '') === String(equipmentId || '')
+    );
+    if (sameItem) {
+      sameItem.quantity = Math.min(product.stock, sameItem.quantity + quantity);
+      if (equipmentName) sameItem.equipmentName = String(equipmentName);
+      if (compatibilityMessage) sameItem.compatibilityMessage = String(compatibilityMessage);
+    } else {
+      user.carrito.push({
+        productId,
+        quantity,
+        equipmentId: equipmentId || undefined,
+        equipmentName: equipmentName ? String(equipmentName) : undefined,
+        compatibilityMessage: compatibilityMessage ? String(compatibilityMessage) : undefined
+      });
+    }
+    await user.save();
+    const {cart} = await getCartResponse(user);
+    res.json({cart});
+  } catch (error) {
+    res.status(500).json({ message: 'No se pudo agregar el producto al carrito' });
+  }
+});
+
+app.patch('/api/cart/items/:productId', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    const quantity = Number(req.body.quantity);
+    if (!Number.isInteger(quantity) || quantity < 0) {
+      return res.status(400).json({ message: 'La cantidad no es válida' });
+    }
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    const equipmentId = req.body.equipmentId ? String(req.body.equipmentId) : '';
+    user.carrito = user.carrito.filter(item =>
+      !(String(item.productId) === req.params.productId &&
+        String(item.equipmentId || '') === equipmentId)
+    );
+    if (quantity > 0) {
+      const product = await Producto.findOne({_id: req.params.productId, activo: true});
+      if (!product) return res.status(409).json({ message: 'El producto ya no está disponible' });
+      if (quantity > product.stock) return res.status(409).json({ message: 'No hay stock suficiente' });
+      user.carrito.push({productId: req.params.productId, quantity, equipmentId: equipmentId || undefined});
+    }
+    await user.save();
+    res.json({cart: {userId, items: user.carrito, count: user.carrito.reduce((sum, item) => sum + item.quantity, 0), total: 0}});
+  } catch (error) {
+    res.status(500).json({ message: 'No se pudo actualizar el carrito' });
+  }
+});
+
+app.delete('/api/cart/items/:productId', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    const equipmentId = req.query.equipmentId ? String(req.query.equipmentId) : '';
+    const user = await User.findById(userId);
+    if (!user) return res.status(401).json({ message: 'La sesión no es válida' });
+    user.carrito = user.carrito.filter(item =>
+      !(String(item.productId) === req.params.productId && String(item.equipmentId || '') === equipmentId)
+    );
+    await user.save();
+    res.json({cart: {userId, items: user.carrito, count: user.carrito.reduce((sum, item) => sum + item.quantity, 0), total: 0}});
+  } catch (error) {
+    res.status(500).json({ message: 'No se pudo eliminar el producto del carrito' });
+  }
+});
+
+app.delete('/api/cart', async (req, res) => {
+  try {
+    const userId = obtenerIdUsuario(req, res);
+    if (!userId) return;
+    await User.findByIdAndUpdate(userId, {$set: {carrito: []}});
+    res.json({cart: {userId, items: [], count: 0, total: 0}});
+  } catch (error) {
+    res.status(500).json({ message: 'No se pudo limpiar el carrito' });
+  }
+});
+
+async function getCartResponse(user) {
+  const items = user.carrito || [];
+  const productIds = [...new Set(items.map(item => String(item.productId)))];
+  const products = await Producto.find({_id: {$in: productIds}, activo: true}).lean();
+  const validItems = items.filter(item => products.some(product => String(product._id) === String(item.productId)));
+  const total = validItems.reduce((sum, item) => {
+    const product = products.find(element => String(element._id) === String(item.productId));
+    return sum + (product ? product.precio * item.quantity : 0);
+  }, 0);
+  return {cart: {userId: String(user._id), items: validItems, count: validItems.reduce((sum, item) => sum + item.quantity, 0), total}};
+}
 
 app.post('/api/orders', async (req, res) => {
   try {
@@ -778,14 +940,22 @@ app.post('/api/orders', async (req, res) => {
       }
     }
 
+    const stocksDescontados = [];
     for (const [productoId, cantidad] of cantidadesPorProducto) {
       const actualizado = await Producto.updateOne(
         { _id: productoId, activo: true, stock: { $gte: cantidad } },
         { $inc: { stock: -cantidad } }
       );
       if (actualizado.modifiedCount !== 1) {
+        for (const descontado of stocksDescontados.reverse()) {
+          await Producto.updateOne(
+            { _id: descontado.productoId, activo: true },
+            { $inc: { stock: descontado.cantidad } }
+          );
+        }
         return res.status(409).json({ message: 'El stock cambió mientras se confirmaba la compra. Inténtalo nuevamente' });
       }
+      stocksDescontados.push({productoId, cantidad});
     }
 
     const order = await Order.create({

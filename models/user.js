@@ -33,6 +33,14 @@ const direccionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 }, { _id: true });
 
+const cartItemSchema = new mongoose.Schema({
+  productId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  quantity: { type: Number, required: true, min: 1 },
+  equipmentId: { type: mongoose.Schema.Types.ObjectId },
+  equipmentName: { type: String, trim: true, maxlength: 80 },
+  compatibilityMessage: { type: String, trim: true, maxlength: 300 }
+}, { _id: false });
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -44,7 +52,8 @@ const userSchema = new mongoose.Schema({
   verificationToken: { type: String },
   verificationTokenExpires: { type: Date },
   equipos: { type: [equipoSchema], default: [] },
-  direcciones: { type: [direccionSchema], default: [] }
+  direcciones: { type: [direccionSchema], default: [] },
+  carrito: { type: [cartItemSchema], default: [] }
 }, { timestamps: true });
 
 module.exports = mongoose.model('User', userSchema);

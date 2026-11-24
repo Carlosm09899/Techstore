@@ -142,9 +142,31 @@ function actualizarEstrellasResena() {
     });
 }
 
+let comprasUsuario = new Map();
+
+function crearComprobanteDesdeOrden(order) {
+    return {
+        orderId: String(order._id),
+        fecha: formatoFecha(order.createdAt),
+        envio: order.envio,
+        items: order.items.map((item) => ({
+            nombre: item.nombre,
+            equipoNombre: item.equipoNombre,
+            compatibilidad: item.compatibilidad,
+            cantidad: item.cantidad,
+            precioUnitario: item.precioUnitario,
+            subtotal: item.subtotal
+        })),
+        cantidadTotal: order.items.reduce((total, item) => total + Number(item.cantidad), 0),
+        total: order.total,
+        metodoPago: order.metodoPago
+    };
+}
+
 function mostrarCompras(orders) {
     const lista = document.getElementById('listaCompras');
     lista.innerHTML = '';
+    comprasUsuario = new Map(orders.map((order) => [String(order._id), order]));
     if (!orders.length) {
         lista.innerHTML = `
             <div class="text-center text-muted py-5">
@@ -157,6 +179,14 @@ function mostrarCompras(orders) {
 
     orders.forEach((order) => {
         const numeroOrden = String(order._id).slice(-8).toUpperCase();
+        const pagoConfirmado = order.estado === 'Pagada'
+            || order.pago?.estado === 'Pagado'
+            || ['En preparación', 'Enviada', 'Entregada'].includes(order.estado);
+        const botonFactura = pagoConfirmado
+            ? `<button type="button" class="btn btn-sm btn-primary rounded-pill mt-2 ms-2 btn-descargar-factura" data-order-id="${escaparHTML(order._id)}">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>Descargar comprobante
+               </button>`
+            : '';
         const items = order.items.map((item) => `
             <div class="border-top pt-3 mt-3">
                 <div class="d-flex justify-content-between gap-3">
@@ -188,12 +218,28 @@ function mostrarCompras(orders) {
                         <span class="badge ${claseEstadoOrden(order.estado)} rounded-pill px-3 py-2">${escaparHTML(order.estado)}</span>
                     </div>
                     <div class="mt-3">${items}</div>
-                    <div class="border-top mt-3 pt-3 d-flex justify-content-end">
-                        <span class="fw-bold">Total: $${Number(order.total).toLocaleString()} MXN</span>
+                    <div class="border-top mt-3 pt-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        ${botonFactura}
+                        <span class="fw-bold ms-auto">Total: $${Number(order.total).toLocaleString()} MXN</span>
                     </div>
                 </div>
             </div>
         `);
+    });
+    lista.querySelectorAll('.btn-descargar-factura').forEach((boton) => {
+        boton.addEventListener('click', () => {
+            const order = comprasUsuario.get(boton.dataset.orderId);
+            if (!order) return;
+            try {
+                generarComprobantePDF(crearComprobanteDesdeOrden(order));
+            } catch (error) {
+                mostrarConfirmacionPago({
+                    exitoso: false,
+                    titulo: 'No se pudo descargar',
+                    texto: error.message
+                });
+            }
+        });
     });
     lista.querySelectorAll('.btn-escribir-resena').forEach((boton) => {
         boton.addEventListener('click', () => abrirResenas(boton.dataset.productoId, boton.dataset.productoNombre, true));
@@ -1726,6 +1772,44 @@ function generarComprobantePDF(compra) {
     doc.save(`comprobante-TechStore-${textoPDF(compra.orderId).slice(-8)}.pdf`);
 }
 
+function mostrarConfirmacionPago({
+    exitoso,
+    titulo,
+    texto,
+    folio = '',
+    metodo = '',
+    total = null,
+    comprobante = null
+}) {
+    const icono = document.getElementById('iconoConfirmacionPago');
+    icono.classList.toggle('error', !exitoso);
+    icono.innerHTML = `<i class="bi ${exitoso ? 'bi-check-lg' : 'bi-exclamation-lg'}"></i>`;
+    document.getElementById('tituloConfirmacionPago').textContent = titulo;
+    document.getElementById('textoConfirmacionPago').textContent = texto;
+    document.getElementById('folioConfirmacionPago').textContent = folio ? String(folio).slice(-8).toUpperCase() : '-';
+    document.getElementById('metodoConfirmacionPago').textContent = metodo || '-';
+    document.getElementById('totalConfirmacionPago').textContent =
+        Number.isFinite(Number(total)) ? `$${Number(total).toLocaleString('es-MX')} MXN` : '-';
+
+    const botonDescarga = document.getElementById('btnDescargarComprobantePago');
+    botonDescarga.classList.toggle('d-none', !comprobante);
+    botonDescarga.onclick = comprobante
+        ? () => {
+            try {
+                generarComprobantePDF(comprobante);
+            } catch (error) {
+                mostrarConfirmacionPago({
+                    exitoso: false,
+                    titulo: 'No se pudo descargar',
+                    texto: error.message
+                });
+            }
+        }
+        : null;
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalConfirmacionPago')).show();
+}
+
 function obtenerDatosEnvio() {
     const valor = (id) => document.getElementById(id).value.trim();
     return {
@@ -1855,9 +1939,38 @@ async function finalizarPagoExterno() {
         actualizarIndicadorCarrito();
         renderizarCarrito();
         window.history.replaceState({}, document.title, window.location.pathname);
-        alert(`Pago confirmado. Folio: ${dataOrden.orderId}`);
+        const comprobante = {
+            orderId: dataOrden.orderId,
+            fecha: new Date().toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }),
+            envio: pendiente.envio,
+            items: pendiente.items.map((item) => ({
+                nombre: item.nombre,
+                equipoNombre: item.equipoNombre,
+                compatibilidad: item.compatibilidad,
+                cantidad: item.cantidad,
+                precioUnitario: item.precio,
+                subtotal: item.precio * item.cantidad
+            })),
+            cantidadTotal: pendiente.items.reduce((total, item) => total + Number(item.cantidad), 0),
+            total: dataOrden.total,
+            metodoPago: pendiente.metodoPago
+        };
+        ultimaCompraComprobante = comprobante;
+        mostrarConfirmacionPago({
+            exitoso: true,
+            titulo: '¡Pago confirmado!',
+            texto: 'Tu compra se registró correctamente y el pago quedó confirmado.',
+            folio: dataOrden.orderId,
+            metodo: pendiente.metodoPago,
+            total: dataOrden.total,
+            comprobante
+        });
     } catch (error) {
-        alert(error.message);
+        mostrarConfirmacionPago({
+            exitoso: false,
+            titulo: 'El pago no pudo completarse',
+            texto: error.message
+        });
     }
 }
 

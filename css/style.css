@@ -1959,6 +1959,38 @@ footer hr {
     border-color: rgba(0, 0, 0, 0.18) !important;
 }
 
+.payment-success-dialog {
+    max-width: 430px;
+}
+
+.payment-success-modal {
+    overflow: hidden;
+    border-radius: 28px !important;
+    box-shadow: 0 24px 70px rgba(29, 41, 57, 0.18) !important;
+}
+
+.payment-success-icon {
+    display: inline-flex;
+    width: 82px;
+    height: 82px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #dff6e8;
+    color: #198754;
+    font-size: 42px;
+}
+
+.payment-success-icon.error {
+    background: #fde8e8;
+    color: #dc3545;
+}
+
+.payment-success-details {
+    background: #f7f9fc;
+    border: 1px solid #edf0f5;
+}
+
 #contenedor-productos .card > div:nth-child(2) i {
     color: var(--color-slate) !important;
 }
