@@ -856,6 +856,7 @@ app.post('/api/orders', async (req, res) => {
     if (metodoPagoSeleccionado !== 'Paynet') {
       const ordenExistente = await Order.findOne({ paymentProviderId: String(paymentId) }).select('_id').lean();
       if (ordenExistente) {
+        await User.findByIdAndUpdate(userId, { $set: { carrito: [] } });
         return res.status(200).json({
           message: 'Compra ya registrada',
           orderId: ordenExistente._id,
@@ -974,6 +975,8 @@ app.post('/api/orders', async (req, res) => {
         return datos;
       }, {})
     });
+
+    await User.findByIdAndUpdate(userId, { $set: { carrito: [] } });
 
     res.status(201).json({
       message: 'Compra confirmada correctamente',
